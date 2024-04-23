@@ -1,6 +1,6 @@
 package br.com.bluesburguer.orderingsystem.production.services.sqs;
 
-import java.util.concurrent.TimeUnit;
+import java.util.Random;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,9 +20,24 @@ class SQSEventPublisherTest extends BaseIntegrationTest {
 	@Test
 	void shouldPublishEvent() throws JsonProcessingException, InterruptedException {
 		for (int i = 1; i <= 10; i++) {
-			var status = new Status(Step.KITCHEN, Fase.IN_PROGRESS);
+			var step = new RandomEnumGenerator<Step>(Step.class).randomEnum();
+			var fase = new RandomEnumGenerator<Fase>(Fase.class).randomEnum();
+			
+			var status = new Status(step, fase);
 			publisher.publishEvent(status);
-			TimeUnit.MILLISECONDS.sleep(100L);
 		}
+	}
+	
+	private class RandomEnumGenerator<T extends Enum<T>> {
+	    private static final Random PRNG = new Random();
+	    private final T[] values;
+
+	    public RandomEnumGenerator(Class<T> e) {
+	        values = e.getEnumConstants();
+	    }
+
+	    public T randomEnum() {
+	        return values[PRNG.nextInt(values.length)];
+	    }
 	}
 }

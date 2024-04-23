@@ -20,7 +20,7 @@ public class SQSConsumer {
     public void handle(OrderStatusUpdated orderStatus, Acknowledgment ack) {
     	messageListenerExecutor.submit(() -> {
             try {
-            	log.info("SendMessageRequest received : {}", orderStatus.getId());
+            	log.info("SendMessageRequest received ({}): {}", orderStatus.getId(), orderStatus);
             	ack.acknowledge(); 
             } catch (Exception e) { 
                 log.error("Ocorreu um erro ao tentar processar o evento {}", orderStatus, e);

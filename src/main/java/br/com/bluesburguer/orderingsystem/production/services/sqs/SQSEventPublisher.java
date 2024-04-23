@@ -3,8 +3,6 @@ package br.com.bluesburguer.orderingsystem.production.services.sqs;
 import java.util.UUID;
 
 import org.apache.commons.lang3.RandomStringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -15,11 +13,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import br.com.bluesburguer.orderingsystem.order.Status;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 public class SQSEventPublisher {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(SQSEventPublisher.class);
     
     @Value("${cloud.aws.queue.uri}")
     private String queueUri;
@@ -30,9 +28,8 @@ public class SQSEventPublisher {
     @Autowired
     private ObjectMapper objectMapper;
 
-    public void publishEvent(Status status) {        
-        var id = UUID.randomUUID();
-        var event = new OrderStatusUpdated(id, status);
+    public void publishEvent(Status status) {
+        var event = new OrderStatusUpdated(UUID.randomUUID(), status);
         
         SendMessageRequest sendMessageRequest = null;
         try {
@@ -44,13 +41,12 @@ public class SQSEventPublisher {
                     .withMessageGroupId(groupId)
                     .withMessageDeduplicationId(deduplicationId);
             amazonSQS.sendMessage(sendMessageRequest);
-            LOGGER.info("Event has been published in SQS with id {}", id);
+            log.info("Event has been published in SQS with id {}", event.getId());
         } catch (JsonProcessingException e) {
-            LOGGER.error("JsonProcessingException e : {} and stacktrace : {}", e.getMessage(), e);
+        	log.error("JsonProcessingException e : {} and stacktrace : {}", e.getMessage(), e);
         } catch (Exception e) {
-            LOGGER.error("Exception ocurred while pushing event to sqs : {} and stacktrace ; {}", e.getMessage(), e);
+        	log.error("Exception ocurred while pushing event to sqs : {} and stacktrace ; {}", e.getMessage(), e);
         }
-
     }
     
     private String alphanumericId() {
