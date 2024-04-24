@@ -1,4 +1,4 @@
-package br.com.bluesburguer.orderingsystem.production.services.sqs;
+package br.com.bluesburguer.orderingsystem.production.infra.sqs;
 
 import java.util.UUID;
 
@@ -12,12 +12,13 @@ import com.amazonaws.services.sqs.model.SendMessageRequest;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import br.com.bluesburguer.orderingsystem.order.Status;
+import br.com.bluesburguer.orderingsystem.order.domain.Status;
+import br.com.bluesburguer.orderingsystem.production.domain.OrderStatusUpdated;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
-public class SQSEventPublisher {
+public class OrderStatusUpdatedEventPublisher {
     
     @Value("${cloud.aws.queue.uri}")
     private String queueUri;

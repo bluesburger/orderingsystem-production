@@ -1,4 +1,4 @@
-package br.com.bluesburguer.orderingsystem.production.services.sqs;
+package br.com.bluesburguer.orderingsystem.production.domain;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -10,9 +10,9 @@ import org.junit.jupiter.api.Test;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import br.com.bluesburguer.orderingsystem.order.Fase;
-import br.com.bluesburguer.orderingsystem.order.Status;
-import br.com.bluesburguer.orderingsystem.order.Step;
+import br.com.bluesburguer.orderingsystem.order.domain.Fase;
+import br.com.bluesburguer.orderingsystem.order.domain.Status;
+import br.com.bluesburguer.orderingsystem.order.domain.Step;
 
 class OrderStatusUpdatedUnitTest {
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper().findAndRegisterModules();    

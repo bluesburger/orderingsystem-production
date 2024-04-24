@@ -1,4 +1,4 @@
-package br.com.bluesburguer.orderingsystem.production;
+package br.com.bluesburguer.orderingsystem.production.utils;
 
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;

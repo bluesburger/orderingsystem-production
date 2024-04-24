@@ -1,4 +1,4 @@
-package br.com.bluesburguer.orderingsystem.order;
+package br.com.bluesburguer.orderingsystem.order.domain;
 
 import java.io.Serializable;
 

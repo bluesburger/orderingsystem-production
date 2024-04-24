@@ -1,11 +1,11 @@
-package br.com.bluesburguer.orderingsystem.production.services.sqs;
+package br.com.bluesburguer.orderingsystem.production.domain;
 
 import java.io.Serializable;
 import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-import br.com.bluesburguer.orderingsystem.order.Status;
+import br.com.bluesburguer.orderingsystem.order.domain.Status;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;

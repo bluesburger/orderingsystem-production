@@ -1,4 +1,4 @@
-package br.com.bluesburguer.orderingsystem.production.configuration;
+package br.com.bluesburguer.orderingsystem.production.infra;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.aws.messaging.config.SimpleMessageListenerContainerFactory;
