@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.UUID;
 
-import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -39,12 +38,5 @@ class OrderStatusUpdatedUnitTest {
 		assertThat(json)
 			.isNotNull()
 			.isNotEmpty();
-	}
-	
-	@Test
-	public void givenUsingApache_whenGeneratingRandomAlphanumericString_thenCorrect() {
-	    String generatedString = RandomStringUtils.randomAlphanumeric(10);
-
-	    System.out.println(generatedString);
 	}
 }
