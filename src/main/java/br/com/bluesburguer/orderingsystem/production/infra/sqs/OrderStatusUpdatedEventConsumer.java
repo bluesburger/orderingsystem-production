@@ -1,10 +1,8 @@
 package br.com.bluesburguer.orderingsystem.production.infra.sqs;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.aws.messaging.listener.Acknowledgment;
 import org.springframework.cloud.aws.messaging.listener.SqsMessageDeletionPolicy;
 import org.springframework.cloud.aws.messaging.listener.annotation.SqsListener;
-import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.stereotype.Component;
 
 import br.com.bluesburguer.orderingsystem.production.application.OrderStatusService;
@@ -14,15 +12,25 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Component
 public class OrderStatusUpdatedEventConsumer {
+	 
+	// private final SimpleAsyncTaskExecutor messageListenerExecutor;
 	
-	@Autowired 
-	private AsyncTaskExecutor messageListenerExecutor;
+	private final OrderStatusService orderStatusService;
 	
-	@Autowired
-	private OrderStatusService orderStatusService;
+	public OrderStatusUpdatedEventConsumer(OrderStatusService orderStatusService) {
+		this.orderStatusService = orderStatusService;
+	}
 
     @SqsListener(value = "${cloud.aws.queue.name}", deletionPolicy = SqsMessageDeletionPolicy.NEVER)
     public void handle(OrderStatusUpdated orderStatus, Acknowledgment ack) {
+    	log.debug("SendMessageRequest received ({}): {}", orderStatus.getId(), orderStatus);
+    	if (orderStatusService.update(orderStatus)) {
+    		ack.acknowledge();
+    	}
+    }
+    
+    /*
+    public void handleDeprecated(OrderStatusUpdated orderStatus, Acknowledgment ack) {
     	messageListenerExecutor.submit(() -> {
             try {
             	log.debug("SendMessageRequest received ({}): {}", orderStatus.getId(), orderStatus);
@@ -34,4 +42,5 @@ public class OrderStatusUpdatedEventConsumer {
             }
     	});
     }
+    */
 }

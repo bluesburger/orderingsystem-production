@@ -3,7 +3,6 @@ package br.com.bluesburguer.orderingsystem.production.infra.sqs;
 import java.util.UUID;
 
 import org.apache.commons.lang3.RandomStringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -23,11 +22,14 @@ public class OrderStatusUpdatedEventPublisher {
     @Value("${cloud.aws.queue.uri}")
     private String queueUri;
 
-    @Autowired
-    private AmazonSQS amazonSQS;
+    private final AmazonSQS amazonSQS;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper;
+    
+    public OrderStatusUpdatedEventPublisher(AmazonSQS amazonSQS, ObjectMapper objectMapper) {
+    	this.amazonSQS = amazonSQS;
+    	this.objectMapper = objectMapper;
+    }
 
     public void publishEvent(Status status) {
         var event = new OrderStatusUpdated(UUID.randomUUID(), status);
