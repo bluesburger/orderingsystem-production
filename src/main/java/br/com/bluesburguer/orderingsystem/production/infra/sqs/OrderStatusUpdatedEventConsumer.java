@@ -23,7 +23,7 @@ public class OrderStatusUpdatedEventConsumer {
 
     @SqsListener(value = "${cloud.aws.queue.name}", deletionPolicy = SqsMessageDeletionPolicy.NEVER)
     public void handle(OrderStatusUpdated orderStatus, Acknowledgment ack) {
-    	log.debug("SendMessageRequest received ({}): {}", orderStatus.getId(), orderStatus);
+    	log.info("SendMessageRequest received ({}): {}", orderStatus.getId(), orderStatus);
     	if (orderStatusService.update(orderStatus)) {
     		ack.acknowledge();
     	}

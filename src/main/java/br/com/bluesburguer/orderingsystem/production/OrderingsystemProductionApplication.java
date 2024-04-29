@@ -14,5 +14,4 @@ public class OrderingsystemProductionApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(OrderingsystemProductionApplication.class, args);
 	}
-
 }
