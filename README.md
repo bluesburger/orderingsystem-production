@@ -2,18 +2,11 @@
 > Responsável por performar a produção
 
 
-## Domain Driven Design
+## Para utilizar
 
-> Infrastructure
-- OrderStatusUpdatedEventConsumer
-- OrderStatusUpdatedEventPublisher
-- MongoDbOrderStatusRepository?
-- MongoDBConfiguration?
-- BeanConfiguration?
-- SqsOrderStatusAdapter?
+Instalação
+- Instalar o make conforme tutorial
+- Rodar localmente o comando `make`
 
-> Application
-- OrderStatusService
-
-> Domain
-- OrderStatusUpdated
+Desinstalação
+- Rodar localmente o comando `make down`
