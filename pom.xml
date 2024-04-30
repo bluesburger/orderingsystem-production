@@ -5,19 +5,20 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.7.16</version>
+		<version>3.1.11</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	
 	<groupId>br.com.bluesburger</groupId>
-	<artifactId>orderingsystem-production</artifactId>
+	<artifactId>orderingsystem-test</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	
-	<name>orderingsystem-production</name>
-	<description>System developed for order control</description>
+	<name>orderingsystem-test</name>
+	<description>System developed for test order control</description>
 	
 	<properties>
 		<java.version>17</java.version>
+		<spring.cloud.version>2021.0.6</spring.cloud.version>
 	</properties>
 	
 	<dependencies>
@@ -26,11 +27,11 @@
 			<artifactId>springfox-boot-starter</artifactId>
 			<version>3.0.0</version>
 		</dependency>
-<!--		<dependency>-->
-<!--		    <groupId>io.springfox</groupId>-->
-<!--		    <artifactId>springfox-boot-starter</artifactId>-->
-<!--		    <version>3.0.0</version>-->
-<!--		</dependency>-->
+		<!--		<dependency>-->
+		<!--		    <groupId>io.springfox</groupId>-->
+		<!--		    <artifactId>springfox-boot-starter</artifactId>-->
+		<!--		    <version>3.0.0</version>-->
+		<!--		</dependency>-->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
@@ -69,42 +70,75 @@
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
-			<version>3.12.0</version>
 		</dependency>
 		
 		<!-- Jodatime -->
 		<dependency>
-		    <groupId>com.fasterxml.jackson.datatype</groupId>
-		    <artifactId>jackson-datatype-jsr310</artifactId>
-		    <version>2.17.0</version>
+			<groupId>com.fasterxml.jackson.datatype</groupId>
+			<artifactId>jackson-datatype-jsr310</artifactId>
+			<version>2.17.0</version>
 		</dependency>
 		
 		<!-- SQS Publisher -->
 		<dependency>
-		    <groupId>org.springframework.cloud</groupId>
-		    <artifactId>spring-cloud-starter-aws-messaging</artifactId>
-		    <version>2.2.1.RELEASE</version>
+		    <groupId>io.awspring.cloud</groupId>
+		    <artifactId>spring-cloud-aws-starter-sqs</artifactId>
+		</dependency>
+		<dependency>
+		    <groupId>io.awspring.cloud</groupId>
+		    <artifactId>spring-cloud-aws-starter</artifactId>
 		</dependency>
 		<!-- SQS Listener -->
 		<dependency>
-		    <groupId>org.springframework.cloud</groupId>
-		    <artifactId>spring-cloud-starter-aws-messaging</artifactId>
-		    <version>2.2.1.RELEASE</version>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-aws-messaging</artifactId>
+			<version>2.2.1.RELEASE</version>
 		</dependency>
+		
+		<!-- Test Assynchronous Message Consumption -->
+		<dependency>
+		    <groupId>org.awaitility</groupId>
+		    <artifactId>awaitility</artifactId>
+		    <scope>test</scope>
+		</dependency>
+
 		
 		<!-- Consul Service Discovery -->
 		<dependency>
-		    <groupId>org.springframework.cloud</groupId>
-		    <artifactId>spring-cloud-starter-consul-all</artifactId>
-		    <version>3.1.1</version>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-consul-all</artifactId>
+			<version>4.0.4</version>
+		</dependency>
+		<dependency>
+			<groupId>org.glassfish.jaxb</groupId>
+			<artifactId>jaxb-runtime</artifactId>
+			<scope>provided</scope>
 		</dependency>
 		
+		<!-- Spring Boot Actuator -->
 		<dependency>
 		    <groupId>org.springframework.boot</groupId>
 		    <artifactId>spring-boot-starter-actuator</artifactId>
-		    <version>2.7.3</version>
 		</dependency>
 
+		<!-- Spring Boot Migrator -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-properties-migrator</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+
+		<!-- Flyway -->
+		<dependency>
+			<groupId>org.flywaydb</groupId>
+			<artifactId>flyway-core</artifactId>
+			<version>9.10.2</version>
+		</dependency>
+		<dependency>
+			<groupId>org.flywaydb</groupId>
+			<artifactId>flyway-mysql</artifactId>
+			<version>9.10.2</version>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -159,4 +193,16 @@
 			</releases>
 		</pluginRepository>
 	</pluginRepositories>
+	<dependencyManagement>
+	    <dependencies>
+	        <dependency>
+	            <groupId>io.awspring.cloud</groupId>
+	            <artifactId>spring-cloud-aws</artifactId>
+	            <version>3.0.4</version>
+	            <type>pom</type>
+	            <scope>import</scope>
+	        </dependency>
+	    </dependencies>
+	</dependencyManagement>
+
 </project>

@@ -33,7 +33,7 @@ public class CustomBeans {
 	                CorsEndpointProperties corsProperties, 
 	                WebEndpointProperties webEndpointProperties, 
 	                Environment environment) {
-	    List<ExposableEndpoint<?>> allEndpoints = new ArrayList();
+	    List<ExposableEndpoint<?>> allEndpoints = new ArrayList<>();
 	    Collection<ExposableWebEndpoint> webEndpoints = webEndpointsSupplier.getEndpoints();
 	    allEndpoints.addAll(webEndpoints);
 	    allEndpoints.addAll(servletEndpointsSupplier.getEndpoints());
@@ -45,7 +45,7 @@ public class CustomBeans {
 	    return new WebMvcEndpointHandlerMapping(endpointMapping, webEndpoints, 
 	                endpointMediaTypes, corsProperties.toCorsConfiguration(), 
 	                new EndpointLinksResolver(allEndpoints, basePath), 
-	                shouldRegisterLinksMapping, null);
+	                shouldRegisterLinksMapping);
 	}
 
 	private boolean shouldRegisterLinksMapping(WebEndpointProperties webEndpointProperties, 
