@@ -1,0 +1,37 @@
+{"properties": [
+  {
+    "name": "cloud.aws.queue.order.paid.name",
+    "type": "java.lang.String",
+    "description": "Nome da fila do SQS utilizada para distribuição de pedidos pagos"
+  },
+  {
+    "name": "cloud.aws.queue.order.in_production.name",
+    "type": "java.lang.String",
+    "description": "Nome da fila do SQS utilizada para distribuição de pedidos em andamento"
+  },
+  {
+    "name": "cloud.aws.queue.order.produced.name",
+    "type": "java.lang.String",
+    "description": "Nome da fila do SQS utilizada para distribuição de pedidos prontos para entrega."
+  },
+  {
+    "name": "cloud.aws.queue.order.delivering.name",
+    "type": "java.lang.String",
+    "description": "Nome da fila do SQS utilizada para distribuição de pedidos com entrega em andamento"
+  },
+  {
+    "name": "cloud.aws.queue.order.delivered.name",
+    "type": "java.lang.String",
+    "description": "Nome da fila do SQS utilizada para distribuição de pedidos entregues"
+  },
+  {
+    "name": "cloud.aws.queue.order.canceled.name",
+    "type": "java.lang.String",
+    "description": "Nome da fila do SQS utilizada para distribuição de pedidos cancelados"
+  },
+  {
+    "name": "cloud.aws.end-point.uri",
+    "type": "java.lang.String",
+    "description": "Endereço http do SQS"
+  }
+]}
