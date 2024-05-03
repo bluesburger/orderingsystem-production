@@ -80,20 +80,17 @@
 			<version>2.17.0</version>
 		</dependency>
 		
-		<!-- SQS Publisher -->
-		<dependency>
-		    <groupId>io.awspring.cloud</groupId>
-		    <artifactId>spring-cloud-aws-starter-sqs</artifactId>
-		</dependency>
-		<dependency>
-		    <groupId>io.awspring.cloud</groupId>
-		    <artifactId>spring-cloud-aws-starter</artifactId>
-		</dependency>
 		<!-- SQS Listener -->
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-starter-aws-messaging</artifactId>
-			<version>2.2.1.RELEASE</version>
+			<version>2.2.6.RELEASE</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-messaging</artifactId>
+			<version>5.3.24</version>
 		</dependency>
 		
 		<!-- Test Assynchronous Message Consumption -->

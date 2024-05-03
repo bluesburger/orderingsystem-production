@@ -7,3 +7,7 @@ spring:
         - configuration
         defaultContext: apps
         profileSeparator: '::'
+  autoconfigure:
+    exclude:
+    - org.springframework.cloud.aws.autoconfigure.context.ContextInstanceDataAutoConfiguration
+    - org.springframework.cloud.aws.autoconfigure.context.ContextCredentialsAutoConfiguration
