@@ -23,6 +23,14 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 @RequiredArgsConstructor
 public class SqsQueueManager implements InitializingBean {
+	
+	public static final String MESSAGE_DEMO_QUEUE = "SQS_DEMO_QUEUE";
+	public static final String ORDER_PAID_QUEUE = "order-paid-queue";
+	public static final String ORDER_IN_PRODUCTION_QUEUE = "order-in-production-queue";
+	public static final String ORDER_PRODUCED_QUEUE = "order-produced-queue";
+	public static final String ORDER_DELIVERING_QUEUE = "order-delivering-queue";
+	public static final String ORDER_DELIVERED_QUEUE = "order-delivered-queue";
+	public static final String ORDER_CANCELED_QUEUE = "order-canceled-queue";
 
 	private final AmazonSQSAsync amazonSQSAsyncClient;
 	
@@ -35,22 +43,22 @@ public class SqsQueueManager implements InitializingBean {
 	@Value("${aws.sqs.message.retention.period:86400}")
 	private String messageRetentionPeriod;
 
-	public static final List<String> FIFO_QUEUES = List.of(
-			"SQS_DEMO_QUEUE", 
-			"order-paid-queue",
-			"order-in-production-queue", 
-			"order-produced-queue",
-			"order-delivering-queue", 
-			"order-delivered-queue",
-			"order-canceled-queue");
-
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		createFifoQueues();
 	}
 
 	void createFifoQueues() {
-		FIFO_QUEUES.stream().forEach(originalQueueName -> {
+		List.of(
+				MESSAGE_DEMO_QUEUE,
+				ORDER_PAID_QUEUE,
+				ORDER_IN_PRODUCTION_QUEUE,
+				ORDER_PRODUCED_QUEUE,
+				ORDER_DELIVERING_QUEUE,
+				ORDER_DELIVERED_QUEUE,
+				ORDER_CANCELED_QUEUE)
+		.stream()
+		.forEach(originalQueueName -> {
 			var createdQueue = createFifoQueue(originalQueueName);
 			var deadLetterQueueUrl = createFifoDeadLetterQueue(originalQueueName);
 			log.info("Queue created: {} with associated Dead Letter Queue: {}", createdQueue.getQueueUrl(),
