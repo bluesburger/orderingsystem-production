@@ -22,7 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class SqsQueueBean implements InitializingBean {
+public class SqsQueueManager implements InitializingBean {
 
 	private final AmazonSQSAsync amazonSQSAsyncClient;
 	
@@ -53,7 +53,7 @@ public class SqsQueueBean implements InitializingBean {
 		FIFO_QUEUES.stream().forEach(originalQueueName -> {
 			var createdQueue = createFifoQueue(originalQueueName);
 			var deadLetterQueueUrl = createFifoDeadLetterQueue(originalQueueName);
-			log.info("Queue created: {} with associated Dead Letter: {}", createdQueue.getQueueUrl(),
+			log.info("Queue created: {} with associated Dead Letter Queue: {}", createdQueue.getQueueUrl(),
 					deadLetterQueueUrl);
 		});
 	}
