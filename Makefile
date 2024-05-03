@@ -23,6 +23,14 @@ create-queues:
 		--output text --color auto
 	@ docker compose exec localstack awslocal sqs create-queue --queue-name localstack-queue-order-paid-recovery \
 		--output text --color auto
+		
+	@ echo Creating test queues
+	@ docker compose exec localstack awslocal sqs create-queue --queue-name localstack-queue.fifo --attributes "FifoQueue=true" \
+		--output text --color auto
+	@ docker compose exec localstack awslocal sqs create-queue --queue-name localstack-queue-dead-letter \
+		--output text --color auto
+	@ docker compose exec localstack awslocal sqs create-queue --queue-name localstack-queue-recovery \
+		--output text --color auto
 
 defining-dead-letter-queue-rule:
 	@ echo Defining Dead Letter Queue Attributes
@@ -30,12 +38,24 @@ defining-dead-letter-queue-rule:
 		--queue-url http://sqs.us-east-1.localhost.localstack.cloud:4566/000000000000/localstack-queue-order-paid.fifo \
 		--attributes '{ "RedrivePolicy": "{\"deadLetterTargetArn\":\"arn:aws:sqs:us-east-1:000000000000:localstack-queue-order-paid-dead-letter\",\"maxReceiveCount\":\"1\"}" }' \
 		--output text
+		
+	@ echo Defining test Dead Letter Queue Attributes
+	@ docker compose exec localstack awslocal sqs set-queue-attributes \
+		--queue-url http://sqs.us-east-1.localhost.localstack.cloud:4566/000000000000/localstack-queue.fifo \
+		--attributes '{ "RedrivePolicy": "{\"deadLetterTargetArn\":\"arn:aws:sqs:us-east-1:000000000000:localstack-queue-dead-letter\",\"maxReceiveCount\":\"1\"}" }' \
+		--output text
 
 starting-message-move-task:
 	@ echo Starting Message Move Task
 	@ docker compose exec localstack awslocal sqs start-message-move-task \
         --source-arn arn:aws:sqs:us-east-1:000000000000:localstack-queue-order-paid-dead-letter \
         --destination-arn arn:aws:sqs:us-east-1:000000000000:localstack-queue-order-paid-recovery \
+		--output text
+		
+	@ echo Starting Test Message Move Task
+	@ docker compose exec localstack awslocal sqs start-message-move-task \
+        --source-arn arn:aws:sqs:us-east-1:000000000000:localstack-queue-dead-letter \
+        --destination-arn arn:aws:sqs:us-east-1:000000000000:localstack-queue-recovery \
 		--output text
 
 list-queues:

@@ -1,38 +1,28 @@
-package br.com.bluesburguer.orderingsystem.production.infra.sqs;
+package br.com.bluesburguer.orderingsystem.production.interfaces.sqs;
 
 import org.springframework.cloud.aws.messaging.listener.Acknowledgment;
 import org.springframework.cloud.aws.messaging.listener.SqsMessageDeletionPolicy;
 import org.springframework.cloud.aws.messaging.listener.annotation.SqsListener;
 import org.springframework.stereotype.Component;
 
-import br.com.bluesburguer.orderingsystem.production.domain.OrderCanceled;
-import br.com.bluesburguer.orderingsystem.production.domain.OrderDelivered;
-import br.com.bluesburguer.orderingsystem.production.domain.OrderDelivering;
-import br.com.bluesburguer.orderingsystem.production.domain.OrderInProduction;
 import br.com.bluesburguer.orderingsystem.production.domain.OrderPaid;
-import br.com.bluesburguer.orderingsystem.production.domain.OrderProduced;
-import lombok.RequiredArgsConstructor;
+import br.com.bluesburguer.orderingsystem.production.domain.OrderStatusUpdated;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class OrderStatusUpdatedEventConsumer {
 	
 //	private final OrderStatusService orderStatusService;
-	
-	/*
-    @SqsListener(value = "${cloud.aws.queue.name}", deletionPolicy = SqsMessageDeletionPolicy.NEVER)
+
+    @SqsListener(value = "localstack-queue.fifo", deletionPolicy = SqsMessageDeletionPolicy.NEVER)
     public void handle(OrderStatusUpdated orderStatus, Acknowledgment ack) {
     	log.info("SendMessageRequest received ({}): {}", orderStatus.getId(), orderStatus);
-    	if (orderStatusService.update(orderStatus)) {
-    		ack.acknowledge();
-    	}
+    	ack.acknowledge();
     }
-    */
-	
+
 	// handle OrdePaid (PedidoPago)
-	@SqsListener(value = "${queues.order.paid.name}", deletionPolicy = SqsMessageDeletionPolicy.NEVER)
+	@SqsListener(value = "localstack-queue-order-paid.fifo", deletionPolicy = SqsMessageDeletionPolicy.NEVER)
     public void handle(OrderPaid event, Acknowledgment ack) {
     	log.info("Event received: {}", event.getClass());
 //    	if (orderStatusService.update(event.getOrderId(), Step.KITCHEN, Fase.PENDING)) {
