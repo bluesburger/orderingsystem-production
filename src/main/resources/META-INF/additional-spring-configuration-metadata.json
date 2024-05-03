@@ -33,5 +33,10 @@
     "name": "cloud.aws.end-point.uri",
     "type": "java.lang.String",
     "description": "Endereço http do SQS"
+  },
+  {
+    "name": "cloud.aws.queue.host",
+    "type": "java.lang.String",
+    "description": "Url host do SQS"
   }
 ]}
