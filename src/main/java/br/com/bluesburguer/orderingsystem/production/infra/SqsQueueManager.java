@@ -24,13 +24,15 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class SqsQueueManager implements InitializingBean {
 	
-	public static final String MESSAGE_DEMO_QUEUE = "SQS_DEMO_QUEUE";
-	public static final String ORDER_PAID_QUEUE = "order-paid-queue";
-	public static final String ORDER_IN_PRODUCTION_QUEUE = "order-in-production-queue";
-	public static final String ORDER_PRODUCED_QUEUE = "order-produced-queue";
-	public static final String ORDER_DELIVERING_QUEUE = "order-delivering-queue";
-	public static final String ORDER_DELIVERED_QUEUE = "order-delivered-queue";
-	public static final String ORDER_CANCELED_QUEUE = "order-canceled-queue";
+	public static final String MESSAGE_DEMO_QUEUE = "SQS_DEMO_QUEUE.fifo";
+	public static final String ORDER_PAID_QUEUE = "order-paid-queue.fifo";
+	public static final String ORDER_IN_PRODUCTION_QUEUE = "order-in-production-queue.fifo";
+	public static final String ORDER_PRODUCED_QUEUE = "order-produced-queue.fifo";
+	public static final String ORDER_DELIVERING_QUEUE = "order-delivering-queue.fifo";
+	public static final String ORDER_DELIVERED_QUEUE = "order-delivered-queue.fifo";
+	public static final String ORDER_CANCELED_QUEUE = "order-canceled-queue.fifo";
+	
+	private static final String FIFO_SUFIX = ".fifo";
 
 	private final AmazonSQSAsync amazonSQSAsyncClient;
 	
@@ -58,6 +60,7 @@ public class SqsQueueManager implements InitializingBean {
 				ORDER_DELIVERED_QUEUE,
 				ORDER_CANCELED_QUEUE)
 		.stream()
+		.map(queue -> queue.replace(FIFO_SUFIX, ""))
 		.forEach(originalQueueName -> {
 			var createdQueue = createFifoQueue(originalQueueName);
 			var deadLetterQueueUrl = createFifoDeadLetterQueue(originalQueueName);
@@ -121,8 +124,8 @@ public class SqsQueueManager implements InitializingBean {
 	}
 	
 	String normalizeFifoQueueName(String queueName) {
-		return queueName.toLowerCase().endsWith(".fifo") 
+		return queueName.toLowerCase().endsWith(FIFO_SUFIX) 
 				? queueName 
-				: queueName + ".fifo";
+				: queueName + FIFO_SUFIX;
 	}
 }

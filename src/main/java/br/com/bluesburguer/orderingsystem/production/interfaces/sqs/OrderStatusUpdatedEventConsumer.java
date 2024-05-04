@@ -1,8 +1,11 @@
 package br.com.bluesburguer.orderingsystem.production.interfaces.sqs;
 
+import org.springframework.cloud.aws.messaging.listener.Acknowledgment;
+import org.springframework.cloud.aws.messaging.listener.SqsMessageDeletionPolicy;
 import org.springframework.cloud.aws.messaging.listener.annotation.SqsListener;
 import org.springframework.stereotype.Service;
 
+import br.com.bluesburguer.orderingsystem.production.domain.OrderStatusUpdated;
 import br.com.bluesburguer.orderingsystem.production.infra.SqsQueueManager;
 import lombok.extern.slf4j.Slf4j;
 
