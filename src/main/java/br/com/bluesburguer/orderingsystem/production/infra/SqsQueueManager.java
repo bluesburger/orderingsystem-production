@@ -12,8 +12,10 @@ import com.amazonaws.services.sqs.AmazonSQSAsync;
 import com.amazonaws.services.sqs.model.AmazonSQSException;
 import com.amazonaws.services.sqs.model.CreateQueueRequest;
 import com.amazonaws.services.sqs.model.CreateQueueResult;
+import com.amazonaws.services.sqs.model.DeleteQueueRequest;
 import com.amazonaws.services.sqs.model.GetQueueAttributesRequest;
 import com.amazonaws.services.sqs.model.QueueAttributeName;
+import com.amazonaws.services.sqs.model.QueueNameExistsException;
 import com.amazonaws.services.sqs.model.SetQueueAttributesRequest;
 
 import lombok.RequiredArgsConstructor;
@@ -62,10 +64,19 @@ public class SqsQueueManager implements InitializingBean {
 		.stream()
 		.map(queue -> queue.replace(FIFO_SUFIX, ""))
 		.forEach(originalQueueName -> {
-			var createdQueue = createFifoQueue(originalQueueName);
-			var deadLetterQueueUrl = createFifoDeadLetterQueue(originalQueueName);
-			log.info("Queue created: {} with associated Dead Letter Queue: {}", createdQueue.getQueueUrl(),
-					deadLetterQueueUrl);
+			CreateQueueResult createdQueue = null;
+//			try {
+				createdQueue = createFifoQueue(originalQueueName);
+			
+				var deadLetterQueueUrl = createFifoDeadLetterQueue(originalQueueName);
+				log.info("Queue created: {} with associated Dead Letter Queue: {}", createdQueue.getQueueUrl(),
+						deadLetterQueueUrl);
+//			} catch(QueueNameExistsException e) {
+//				var deleteQueueRequest = new DeleteQueueRequest()
+//						.withQueueUrl(originalQueueName);
+//				amazonSQSAsyncClient.deleteQueue(deleteQueueRequest);
+//				createdQueue = createFifoQueue(originalQueueName);
+//			}
 		});
 	}
 

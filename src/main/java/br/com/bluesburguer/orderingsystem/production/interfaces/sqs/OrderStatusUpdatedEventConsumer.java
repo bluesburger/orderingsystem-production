@@ -5,78 +5,92 @@ import org.springframework.cloud.aws.messaging.listener.SqsMessageDeletionPolicy
 import org.springframework.cloud.aws.messaging.listener.annotation.SqsListener;
 import org.springframework.stereotype.Service;
 
-import br.com.bluesburguer.orderingsystem.production.domain.OrderStatusUpdated;
+import br.com.bluesburguer.orderingsystem.order.domain.Fase;
+import br.com.bluesburguer.orderingsystem.order.domain.Step;
+import br.com.bluesburguer.orderingsystem.production.application.OrderStatusService;
+import br.com.bluesburguer.orderingsystem.production.domain.OrderCanceled;
+import br.com.bluesburguer.orderingsystem.production.domain.OrderDelivered;
+import br.com.bluesburguer.orderingsystem.production.domain.OrderDelivering;
+import br.com.bluesburguer.orderingsystem.production.domain.OrderInProduction;
+import br.com.bluesburguer.orderingsystem.production.domain.OrderPaid;
+import br.com.bluesburguer.orderingsystem.production.domain.OrderProduced;
 import br.com.bluesburguer.orderingsystem.production.infra.SqsQueueManager;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * TODO: tentar juntar todos os processamentos na mesma fila, deve fazer mais sentido sequencial
+ */
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class OrderStatusUpdatedEventConsumer {
 	
-//	private final OrderStatusService orderStatusService;
+	private final OrderStatusService orderStatusService;
 	
-	@SqsListener(SqsQueueManager.MESSAGE_DEMO_QUEUE)
-    public void handle(String message) {
+	@SqsListener(value = SqsQueueManager.MESSAGE_DEMO_QUEUE, deletionPolicy = SqsMessageDeletionPolicy.NEVER)
+    public void handle(String message, Acknowledgment ack) {
     	log.info("SendMessageRequest received: {}", message);
+    	ack.acknowledge();
     }
 
-//    @SqsListener(value = "localstack-queue.fifo", deletionPolicy = SqsMessageDeletionPolicy.NEVER)
+//    @SqsListener(value = SqsQueueManager.ORDER_PAID_QUEUE, deletionPolicy = SqsMessageDeletionPolicy.NEVER)
 //    public void handle(OrderStatusUpdated orderStatus, Acknowledgment ack) {
 //    	log.info("SendMessageRequest received ({}): {}", orderStatus.getId(), orderStatus);
 //    	ack.acknowledge();
 //    }
 
 	// handle OrdePaid (PedidoPago)
-//	@SqsListener(value = "localstack-queue-order-paid.fifo", deletionPolicy = SqsMessageDeletionPolicy.NEVER)
-//    public void handle(OrderPaid event, Acknowledgment ack) {
-//    	log.info("Event received: {}", event.getClass());
-//    	if (orderStatusService.update(event.getOrderId(), Step.KITCHEN, Fase.PENDING)) {
-//    		ack.acknowledge();
-//    	}
-//    }
+	@SqsListener(value = SqsQueueManager.ORDER_PAID_QUEUE, deletionPolicy = SqsMessageDeletionPolicy.NEVER)
+    public void handle(OrderPaid event, Acknowledgment ack) {
+		log.info("Event received on queue {}: {}", SqsQueueManager.ORDER_PAID_QUEUE, event);
+    	if (orderStatusService.update(event.getOrderId(), Step.KITCHEN, Fase.PENDING)) {
+    		ack.acknowledge();
+    	}
+    }
 
 	// handle OrderInProduction (PedidoEmProducao)
-//	@SqsListener(value = "localstack-queue-order-in-production.fifo", deletionPolicy = SqsMessageDeletionPolicy.ON_SUCCESS)
-//    public void handle(OrderInProduction event) {
-//    	log.info("Event received: {}", event.getClass());
-//    	if (orderStatusService.update(event.getOrderId(), Step.KITCHEN, Fase.IN_PROGRESS)) {
-//    		ack.acknowledge();
-//    	}
-//    }
+	@SqsListener(value = SqsQueueManager.ORDER_IN_PRODUCTION_QUEUE, deletionPolicy = SqsMessageDeletionPolicy.NEVER)
+    public void handle(OrderInProduction event, Acknowledgment ack) {
+    	log.info("Event received on queue {}: {}", SqsQueueManager.ORDER_IN_PRODUCTION_QUEUE, event);
+    	if (orderStatusService.update(event.getOrderId(), Step.KITCHEN, Fase.IN_PROGRESS)) {
+    		ack.acknowledge();
+    	}
+    }
 	
 	// handle OrderProduced (PedidoProduzido)
-//	@SqsListener(value = "localstack-queue-order-produced.fifo", deletionPolicy = SqsMessageDeletionPolicy.ON_SUCCESS)
-//    public void handle(OrderProduced event) {
-//    	log.info("Event received: {}", event.getClass());
-//    	if (orderStatusService.update(event.getOrderId(), Step.DELIVERY, Fase.PENDING)) {
-//    		ack.acknowledge();
-//    	}
-//    }
+	@SqsListener(value = SqsQueueManager.ORDER_PRODUCED_QUEUE, deletionPolicy = SqsMessageDeletionPolicy.NEVER)
+    public void handle(OrderProduced event, Acknowledgment ack) {
+		log.info("Event received on queue {}: {}", SqsQueueManager.ORDER_PRODUCED_QUEUE, event);
+    	if (orderStatusService.update(event.getOrderId(), Step.DELIVERY, Fase.PENDING)) {
+    		ack.acknowledge();
+    	}
+    }
 	
 	// handle OrderDelivering(PedidoSendoEntregue)
-//	@SqsListener(value = "localstack-queue-order-delivering.fifo", deletionPolicy = SqsMessageDeletionPolicy.ON_SUCCESS)
-//    public void handle(OrderDelivering event) {
-//    	log.info("Event received: {}", event.getClass());
-//    	if (orderStatusService.update(event.getOrderId(), Step.DELIVERY, Fase.IN_PROGRESS)) {
-//    		ack.acknowledge();
-//    	}
-//    }
+	@SqsListener(value = SqsQueueManager.ORDER_DELIVERING_QUEUE, deletionPolicy = SqsMessageDeletionPolicy.NEVER)
+    public void handle(OrderDelivering event, Acknowledgment ack) {
+		log.info("Event received on queue {}: {}", SqsQueueManager.ORDER_DELIVERING_QUEUE, event);
+    	if (orderStatusService.update(event.getOrderId(), Step.DELIVERY, Fase.IN_PROGRESS)) {
+    		ack.acknowledge();
+    	}
+    }
 	
 	// handle OrdeDelivered (PedidoEntregue)
-//	@SqsListener(value = "localstack-queue-order-delivered.fifo", deletionPolicy = SqsMessageDeletionPolicy.ON_SUCCESS)
-//    public void handle(OrderDelivered event) {
-//    	log.info("Event received: {}", event.getClass());
-//    	if (orderStatusService.update(event.getOrderId(), Step.DELIVERY, Fase.DONE)) {
-//    		ack.acknowledge();
-//    	}
-//    }
+	@SqsListener(value = SqsQueueManager.ORDER_DELIVERED_QUEUE, deletionPolicy = SqsMessageDeletionPolicy.NEVER)
+    public void handle(OrderDelivered event, Acknowledgment ack) {
+		log.info("Event received on queue {}: {}", SqsQueueManager.ORDER_DELIVERED_QUEUE, event);
+    	if (orderStatusService.update(event.getOrderId(), Step.DELIVERY, Fase.DONE)) {
+    		ack.acknowledge();
+    	}
+    }
 	
 	// handle OrdeCanceled (PedidoCancelado)
-//	@SqsListener(value = "localstack-queue-order-canceled.fifo", deletionPolicy = SqsMessageDeletionPolicy.ON_SUCCESS)
-//    public void handle(OrderCanceled event) {
-//    	log.info("Event received: {}", event.getClass());
-//    	if (orderStatusService.update(event.getOrderId(), event.getStep(), Fase.CANCELED)) {
-//    		ack.acknowledge();
-//    	}
-//    }
+	@SqsListener(value = SqsQueueManager.ORDER_CANCELED_QUEUE, deletionPolicy = SqsMessageDeletionPolicy.NEVER)
+    public void handle(OrderCanceled event, Acknowledgment ack) {
+		log.info("Event received on queue {}: {}", SqsQueueManager.ORDER_CANCELED_QUEUE, event);
+    	if (orderStatusService.update(event.getOrderId(), event.getStep(), Fase.CANCELED)) {
+    		ack.acknowledge();
+    	}
+    }
 }
