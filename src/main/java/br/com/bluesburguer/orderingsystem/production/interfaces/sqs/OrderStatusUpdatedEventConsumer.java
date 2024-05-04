@@ -44,7 +44,10 @@ public class OrderStatusUpdatedEventConsumer {
 	@SqsListener(value = SqsQueueManager.ORDER_PAID_QUEUE, deletionPolicy = SqsMessageDeletionPolicy.NEVER)
     public void handle(OrderPaid event, Acknowledgment ack) {
 		log.info("Event received on queue {}: {}", SqsQueueManager.ORDER_PAID_QUEUE, event);
-    	if (orderStatusService.update(event.getOrderId(), Step.KITCHEN, Fase.PENDING)) {
+		var newStep = Step.KITCHEN;
+		var newFase = Fase.PENDING;
+    	if (orderStatusService.update(event.getOrderId(), newStep, newFase)) {
+    		log.info("Order status updated to step {} and fase {}", newStep, newFase);
     		ack.acknowledge();
     	}
     }
@@ -52,8 +55,11 @@ public class OrderStatusUpdatedEventConsumer {
 	// handle OrderInProduction (PedidoEmProducao)
 	@SqsListener(value = SqsQueueManager.ORDER_IN_PRODUCTION_QUEUE, deletionPolicy = SqsMessageDeletionPolicy.NEVER)
     public void handle(OrderInProduction event, Acknowledgment ack) {
+		var newStep = Step.KITCHEN;
+		var newFase = Fase.IN_PROGRESS;
     	log.info("Event received on queue {}: {}", SqsQueueManager.ORDER_IN_PRODUCTION_QUEUE, event);
-    	if (orderStatusService.update(event.getOrderId(), Step.KITCHEN, Fase.IN_PROGRESS)) {
+    	if (orderStatusService.update(event.getOrderId(), newStep, newFase)) {
+    		log.info("Order status updated to step {} and fase {}", newStep, newFase);
     		ack.acknowledge();
     	}
     }
@@ -62,7 +68,10 @@ public class OrderStatusUpdatedEventConsumer {
 	@SqsListener(value = SqsQueueManager.ORDER_PRODUCED_QUEUE, deletionPolicy = SqsMessageDeletionPolicy.NEVER)
     public void handle(OrderProduced event, Acknowledgment ack) {
 		log.info("Event received on queue {}: {}", SqsQueueManager.ORDER_PRODUCED_QUEUE, event);
-    	if (orderStatusService.update(event.getOrderId(), Step.DELIVERY, Fase.PENDING)) {
+		var newStep = Step.DELIVERY;
+		var newFase = Fase.PENDING;
+    	if (orderStatusService.update(event.getOrderId(), newStep, newFase)) {
+    		log.info("Order status updated to step {} and fase {}", newStep, newFase);
     		ack.acknowledge();
     	}
     }
@@ -71,7 +80,10 @@ public class OrderStatusUpdatedEventConsumer {
 	@SqsListener(value = SqsQueueManager.ORDER_DELIVERING_QUEUE, deletionPolicy = SqsMessageDeletionPolicy.NEVER)
     public void handle(OrderDelivering event, Acknowledgment ack) {
 		log.info("Event received on queue {}: {}", SqsQueueManager.ORDER_DELIVERING_QUEUE, event);
-    	if (orderStatusService.update(event.getOrderId(), Step.DELIVERY, Fase.IN_PROGRESS)) {
+		var newStep = Step.DELIVERY;
+		var newFase = Fase.IN_PROGRESS;
+    	if (orderStatusService.update(event.getOrderId(), newStep, newFase)) {
+    		log.info("Order status updated to step {} and fase {}", newStep, newFase);
     		ack.acknowledge();
     	}
     }
@@ -80,7 +92,10 @@ public class OrderStatusUpdatedEventConsumer {
 	@SqsListener(value = SqsQueueManager.ORDER_DELIVERED_QUEUE, deletionPolicy = SqsMessageDeletionPolicy.NEVER)
     public void handle(OrderDelivered event, Acknowledgment ack) {
 		log.info("Event received on queue {}: {}", SqsQueueManager.ORDER_DELIVERED_QUEUE, event);
-    	if (orderStatusService.update(event.getOrderId(), Step.DELIVERY, Fase.DONE)) {
+		var newStep = Step.DELIVERY;
+		var newFase = Fase.DONE;
+    	if (orderStatusService.update(event.getOrderId(), newStep, newFase)) {
+    		log.info("Order status updated to step {} and fase {}", newStep, newFase);
     		ack.acknowledge();
     	}
     }
@@ -89,7 +104,10 @@ public class OrderStatusUpdatedEventConsumer {
 	@SqsListener(value = SqsQueueManager.ORDER_CANCELED_QUEUE, deletionPolicy = SqsMessageDeletionPolicy.NEVER)
     public void handle(OrderCanceled event, Acknowledgment ack) {
 		log.info("Event received on queue {}: {}", SqsQueueManager.ORDER_CANCELED_QUEUE, event);
-    	if (orderStatusService.update(event.getOrderId(), event.getStep(), Fase.CANCELED)) {
+		var newStep = event.getStep();
+		var newFase = Fase.CANCELED;
+    	if (orderStatusService.update(event.getOrderId(), newStep, newFase)) {
+    		log.info("Order status updated to step {} and fase {}", newStep, newFase);
     		ack.acknowledge();
     	}
     }

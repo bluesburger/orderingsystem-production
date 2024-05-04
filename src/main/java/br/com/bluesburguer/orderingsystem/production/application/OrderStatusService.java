@@ -1,6 +1,5 @@
 package br.com.bluesburguer.orderingsystem.production.application;
 
-import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.stereotype.Service;
 
 import br.com.bluesburguer.orderingsystem.order.domain.Fase;
@@ -16,6 +15,9 @@ public class OrderStatusService {
 
 	public boolean update(Long orderId, Step newStep, Fase newFase) {
 		var updatedOrder = orderClient.updateStepAndFase(orderId, newStep, newFase);
-		return ObjectUtils.anyNull(updatedOrder);
+		return updatedOrder != null 
+				&& updatedOrder.getId() != null 
+				&& newStep.equals(updatedOrder.getStep())
+				&& newFase.equals(updatedOrder.getFase());
 	}
 }
