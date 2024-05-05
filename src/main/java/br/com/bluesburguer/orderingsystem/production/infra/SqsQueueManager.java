@@ -15,7 +15,6 @@ import com.amazonaws.services.sqs.model.CreateQueueResult;
 import com.amazonaws.services.sqs.model.DeleteQueueRequest;
 import com.amazonaws.services.sqs.model.GetQueueAttributesRequest;
 import com.amazonaws.services.sqs.model.QueueAttributeName;
-import com.amazonaws.services.sqs.model.QueueNameExistsException;
 import com.amazonaws.services.sqs.model.SetQueueAttributesRequest;
 
 import lombok.RequiredArgsConstructor;
@@ -26,7 +25,6 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class SqsQueueManager implements InitializingBean {
 	
-	public static final String MESSAGE_DEMO_QUEUE = "SQS_DEMO_QUEUE.fifo";
 	public static final String ORDER_PAID_QUEUE = "order-paid-queue.fifo";
 	public static final String ORDER_IN_PRODUCTION_QUEUE = "order-in-production-queue.fifo";
 	public static final String ORDER_PRODUCED_QUEUE = "order-produced-queue.fifo";
@@ -41,11 +39,14 @@ public class SqsQueueManager implements InitializingBean {
 	@Value("${aws.sqs.visibility.timeout:60}")
 	private String visibilityTimeout;
 	
-	@Value("${aws.sqs.delay.seconds:10}")
+	@Value("${aws.sqs.delay.seconds:0}")
 	private String delaySeconds;
 	
 	@Value("${aws.sqs.message.retention.period:86400}")
 	private String messageRetentionPeriod;
+	
+	@Value("${aws.sqs.message.redrive.policy:5}")
+	private Integer redrivePolicy;
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
@@ -54,7 +55,6 @@ public class SqsQueueManager implements InitializingBean {
 
 	void createFifoQueues() {
 		List.of(
-				MESSAGE_DEMO_QUEUE,
 				ORDER_PAID_QUEUE,
 				ORDER_IN_PRODUCTION_QUEUE,
 				ORDER_PRODUCED_QUEUE,
@@ -64,20 +64,17 @@ public class SqsQueueManager implements InitializingBean {
 		.stream()
 		.map(queue -> queue.replace(FIFO_SUFIX, ""))
 		.forEach(originalQueueName -> {
-			CreateQueueResult createdQueue = null;
-//			try {
-				createdQueue = createFifoQueue(originalQueueName);
-			
-				var deadLetterQueueUrl = createFifoDeadLetterQueue(originalQueueName);
-				log.info("Queue created: {} with associated Dead Letter Queue: {}", createdQueue.getQueueUrl(),
-						deadLetterQueueUrl);
-//			} catch(QueueNameExistsException e) {
-//				var deleteQueueRequest = new DeleteQueueRequest()
-//						.withQueueUrl(originalQueueName);
-//				amazonSQSAsyncClient.deleteQueue(deleteQueueRequest);
-//				createdQueue = createFifoQueue(originalQueueName);
-//			}
+			CreateQueueResult createdQueue = createFifoQueue(originalQueueName);
+			var deadLetterQueueUrl = createFifoDeadLetterQueue(originalQueueName);
+			log.info("Queue created: {} with associated Dead Letter Queue: {}", createdQueue.getQueueUrl(),
+					deadLetterQueueUrl);
 		});
+	}
+	
+	void deleteQueue(String name) {
+		var deleteQueueRequest = new DeleteQueueRequest()
+				.withQueueUrl(name);
+		amazonSQSAsyncClient.deleteQueue(deleteQueueRequest);
 	}
 
 	CreateQueueResult createQueue(String name) {
@@ -123,7 +120,7 @@ public class SqsQueueManager implements InitializingBean {
 		// Definir a fila como DEAD LETTER da fila criada
 		Map<String, String> attributes = new HashMap<>();
 		attributes.put(QueueAttributeName.RedrivePolicy.name(),
-				"{\"maxReceiveCount\":\"5\", \"deadLetterTargetArn\":\"" + deadLetterQueueARN + "\"}");
+				"{\"maxReceiveCount\":\"" + redrivePolicy + "\", \"deadLetterTargetArn\":\"" + deadLetterQueueARN + "\"}");
 
 		var queueAttributeRequest = new SetQueueAttributesRequest()
 				.withQueueUrl(normalizeFifoQueueName(baseQueueName))
