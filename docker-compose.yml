@@ -55,8 +55,8 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=dev
       - CONSUL_HOST=consul
-      - AWS_ACCESS_KEY=
-      - AWS_SECRET_KEY=
+      - AWS_ACCESS_KEY=${AWS_ACCESS_KEY}
+      - AWS_SECRET_KEY=${AWS_SECRET_KEY}
       - AWS_REGION=us-east-1
     volumes:
       - db_app:/var/lib/app
