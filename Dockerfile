@@ -25,4 +25,4 @@ COPY --from=builder /app/target/*.properties .
 EXPOSE 9000
 
 # Comando para iniciar o aplicativo
-CMD ["java", "-jar", "orderingsystem-production-0.0.1-SNAPSHOT.jar"]
+ENTRYPOINT ["java", "-jar", "orderingsystem-production-0.0.1-SNAPSHOT.jar"]
