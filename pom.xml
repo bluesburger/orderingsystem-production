@@ -10,11 +10,11 @@
 	</parent>
 	
 	<groupId>br.com.bluesburger</groupId>
-	<artifactId>orderingsystem-test</artifactId>
+	<artifactId>orderingsystem-production</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	
-	<name>orderingsystem-test</name>
-	<description>System developed for test order control</description>
+	<name>orderingsystem-production</name>
+	<description>System developed for control ordering</description>
 	
 	<properties>
 		<java.version>17</java.version>
