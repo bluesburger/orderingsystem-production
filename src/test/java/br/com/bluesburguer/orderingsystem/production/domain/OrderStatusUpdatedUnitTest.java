@@ -9,10 +9,10 @@ import org.junit.jupiter.api.Test;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import br.com.bluesburguer.production.domain.OrderStatusUpdated;
-import br.com.bluesburguer.production.order.domain.Fase;
-import br.com.bluesburguer.production.order.domain.Status;
-import br.com.bluesburguer.production.order.domain.Step;
+import br.com.bluesburguer.production.adapters.in.sqs.dto.OrderStatusUpdated;
+import br.com.bluesburguer.production.core.domain.Fase;
+import br.com.bluesburguer.production.core.domain.Status;
+import br.com.bluesburguer.production.core.domain.Step;
 
 class OrderStatusUpdatedUnitTest {
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper().findAndRegisterModules();    
