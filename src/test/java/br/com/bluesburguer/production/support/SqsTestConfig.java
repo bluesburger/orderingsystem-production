@@ -1,4 +1,4 @@
-package br.com.bluesburguer.orderingsystem.production.support;
+package br.com.bluesburguer.production.support;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
