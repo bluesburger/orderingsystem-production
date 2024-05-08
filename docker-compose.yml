@@ -11,15 +11,17 @@ services:
       - bluesburguer-network
     environment:
       # LocalStack configuration: https://docs.localstack.cloud/references/configuration/
-      - DEBUG=${DEBUG:-0}
+      - DEBUG=${DEBUG:-1}
       - SERVICES=sqs
       - DEFAULT_REGION=us-east-1
       - AWS_DEFAULT_REGION=us-east-1
-      - DEBUG=1
       - DATA_DIR=/tmp/localstack/data
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_KEY}
     volumes:
       - "${LOCALSTACK_VOLUME_DIR:-./volume}:/var/lib/localstack"
       - "/var/run/docker.sock:/var/run/docker.sock"
+      - "./scripts/localstack:/etc/localstack/init/ready.d"  # ready hook
   
   consul:
     image: hashicorp/consul:latest

@@ -16,3 +16,9 @@ show-test-queue:
 
 show-test-message-queue:
 	@ docker compose exec localstack awslocal sqs get-queue-attributes --queue-url http://sqs.us-east-1.localhost.localstack.cloud:4566/000000000000/queuemessage.fifo --attribute-names ApproximateNumberOfMessages
+
+list-queues:
+	@ docker compose exec localstack awslocal sqs list-queues
+	
+check-queues:
+	@ curl -s localhost:4566/_localstack/init
