@@ -8,7 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 class OrderClientIntegrationTests extends BaseIntegrationTest {
 
-	//@Test
+	@Test
 	void loadContext() {
 		log.info("Up!!!");
 	}
