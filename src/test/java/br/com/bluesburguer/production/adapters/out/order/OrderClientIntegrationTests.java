@@ -1,148 +1,70 @@
 package br.com.bluesburguer.production.adapters.out.order;
 
-import static java.util.concurrent.TimeUnit.SECONDS;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.awaitility.Awaitility.await;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.doReturn;
 
 import java.util.List;
-import java.util.stream.Stream;
 
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.mock.mockito.MockBean;
 
-import com.amazonaws.services.sqs.AmazonSQSAsync;
-import com.amazonaws.services.sqs.model.GetQueueAttributesResult;
-import com.amazonaws.services.sqs.model.SendMessageRequest;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.tomakehurst.wiremock.common.ConsoleNotifier;
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
+import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
-import br.com.bluesburguer.production.adapters.in.sqs.dto.OrderCanceled;
-import br.com.bluesburguer.production.adapters.in.sqs.dto.OrderDelivered;
-import br.com.bluesburguer.production.adapters.in.sqs.dto.OrderDelivering;
-import br.com.bluesburguer.production.adapters.in.sqs.dto.OrderEvent;
-import br.com.bluesburguer.production.adapters.in.sqs.dto.OrderInProduction;
-import br.com.bluesburguer.production.adapters.in.sqs.dto.OrderPaid;
-import br.com.bluesburguer.production.adapters.in.sqs.dto.OrderProduced;
+import br.com.bluesburguer.production.adapters.in.order.dto.OrderDto;
+import br.com.bluesburguer.production.adapters.in.order.dto.OrderItemDto;
+import br.com.bluesburguer.production.adapters.in.user.dto.UserDto;
 import br.com.bluesburguer.production.core.domain.Fase;
 import br.com.bluesburguer.production.core.domain.Step;
-import br.com.bluesburguer.production.ports.OrderPort;
-import br.com.bluesburguer.production.utils.BaseIntegrationTest;
+import br.com.bluesburguer.production.support.ApplicationIntegrationSupport;
+import br.com.bluesburguer.production.support.OrderMocks;
 
-class OrderClientIntegrationTests extends BaseIntegrationTest {
+@WireMockTest
+class OrderClientIntegrationTests extends ApplicationIntegrationSupport {
 	
 	@Autowired
-	AmazonSQSAsync SQS;
+	private OrderClient orderClient;
 	
-	@Autowired
-	ObjectMapper objectMapper;
-	
-	@MockBean
-	OrderPort orderPort;
-	
-	@Value("${queue.order.paid:order-paid.fifo}")
-	private String queueOrderPaid;
-	
-	@Value("${queue.order.in-production:order-in-production.fifo}")
-	private String queueOrderInProduction;
-	
-	@Value("${queue.order.produced:order-produced.fifo}")
-	private String queueOrderProduced;
-	
-	@Value("${queue.order.delivering:order-delivering.fifo}")
-	private String queueOrderDelivering;
-	
-	@Value("${queue.order.delivered:order-delivered.fifo}")
-	private String queueOrderDelivered;
-	
-	@Value("${queue.order.canceled:order-canceled.fifo}")
-	private String queueOrderCanceled;
-	
-	@BeforeEach
-	void setUp() {
-		doReturn(true)
-			.when(orderPort)
-			.update(anyLong(), any(Step.class), any(Fase.class));
+	@RegisterExtension
+	static WireMockExtension wme = WireMockExtension.newInstance()
+		.options(wireMockConfig().notifier(new ConsoleNotifier(true)))
+		.proxyMode(true)
+		.build();
+
+	@ParameterizedTest
+	@MethodSource("br.com.bluesburguer.production.support.ParametersSupport#provideStepAndFaseParameters")
+	void whenGetOrder_thenOrderShouldBeReturned(Step step, Fase fase) throws JsonProcessingException {
+		// given
+		var items = List.of(new OrderItemDto(1L,  1));
+		var user = new UserDto(1L, OrderMocks.mockCpf(), OrderMocks.mockEmail());
+		var orderDto = new OrderDto(1L, step, fase, items, user);
+		OrderMocks.mockOrderClientGetById(wme, orderDto);
+
+		// when
+		var orderResponse = orderClient.getById(1L);
+		
+		// then
+		assertThat(orderResponse).isEqualTo(orderDto);
 	}
 	
 	@ParameterizedTest
-	@MethodSource("generateOrders")
-	void shouldSendOrderEvent_Consume_AndUpdateStatusSuccessfully(OrderEvent orderEvent) throws JsonProcessingException {
+	@MethodSource("br.com.bluesburguer.production.support.ParametersSupport#provideStepAndFaseParameters")
+	void whenPutOrderStepAndFase_thenUpdatedOrderShouldBeReturned(Step step, Fase fase) throws JsonProcessingException {
 		// given
-		var queueUrl = SQS.getQueueUrl(defineQueueUrl(orderEvent)).getQueueUrl();
+		var items = List.of(new OrderItemDto(1L,  1));
+		var user = new UserDto(1L, OrderMocks.mockCpf(), OrderMocks.mockEmail());
+		var orderDto = new OrderDto(1L, step, fase, items, user);
+		
+		OrderMocks.mockOrderClientUpdateStepAndFase(wme, orderDto);
 		
 		// when
-		SQS.sendMessage(new SendMessageRequest()
-				.withQueueUrl(queueUrl)
-				.withMessageBody(objectMapper.writeValueAsString(orderEvent)));
+		var orderResponse = orderClient.updateStepAndFase(orderDto.getId(), step, fase);
 		
 		// then
-		await().atMost(3, SECONDS).untilAsserted(() -> {
-            assertThat(numberOfMessagesInQueue(queueUrl)).isZero();
-            assertThat(numberOfMessagesNotVisibleInQueue(queueUrl)).isZero();
-        });
+		assertThat(orderResponse).isEqualTo(orderDto);
 	}
-	
-	public String defineQueueUrl(OrderEvent orderEvent) {
-		if (orderEvent instanceof OrderPaid) {
-			return queueOrderPaid;
-		}
-		
-		if (orderEvent instanceof OrderInProduction) {
-			return queueOrderInProduction;
-		}
-		
-		if (orderEvent instanceof OrderProduced) {
-			return queueOrderProduced;
-		}
-		
-		if (orderEvent instanceof OrderDelivering) {
-			return queueOrderDelivering;
-		}
-		
-		if (orderEvent instanceof OrderDelivered) {
-			return queueOrderDelivered;
-		}
-		
-		if (orderEvent instanceof OrderCanceled) {
-			return queueOrderCanceled;
-		}
-		
-		return null;
-	}
-	
-	private static Stream<OrderEvent> generateOrders() {
-		return Stream.of(
-				OrderPaid.builder(), 
-				OrderInProduction.builder(),
-				OrderProduced.builder(),
-				OrderDelivering.builder(),
-				OrderDelivered.builder(),
-				OrderCanceled.builder().step(Step.KITCHEN)
-			).map(b -> b.orderId(1L).build());
-	}
-	
-	private Integer numberOfMessagesInQueue(String consumerQueueName) {
-        GetQueueAttributesResult attributes = SQS
-                .getQueueAttributes(consumerQueueName, List.of("All"));
-
-        return Integer.parseInt(
-                attributes.getAttributes().get("ApproximateNumberOfMessages")
-        );
-    }
-
-    private Integer numberOfMessagesNotVisibleInQueue(String consumerQueueName) {
-        GetQueueAttributesResult attributes = SQS
-                .getQueueAttributes(consumerQueueName, List.of("All"));
-
-        return Integer.parseInt(
-            attributes.getAttributes().get("ApproximateNumberOfMessagesNotVisible")
-        );
-    }
 }

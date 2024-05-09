@@ -86,11 +86,6 @@ public class SQSConfig {
 	QueueMessagingTemplate queueMessagingTemplate(AmazonSQSAsync amazonSQSAsync, MessageConverter messageConverter) {
 		return new QueueMessagingTemplate(amazonSQSAsync, (ResourceIdResolver) null, messageConverter);
 	}
-
-	@Bean
-	ObjectMapper objectMapper() {
-		return new ObjectMapper();
-	}
 	
 	/** Provides JSON converter for SQS messages */
 	@Bean

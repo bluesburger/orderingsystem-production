@@ -1,4 +1,4 @@
-package br.com.bluesburguer.production.utils;
+package br.com.bluesburguer.production.configuration;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;

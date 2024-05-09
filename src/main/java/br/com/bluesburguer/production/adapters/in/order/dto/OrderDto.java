@@ -10,6 +10,7 @@ import br.com.bluesburguer.production.adapters.in.user.dto.UserDto;
 import br.com.bluesburguer.production.core.domain.Fase;
 import br.com.bluesburguer.production.core.domain.Step;
 import jakarta.validation.constraints.NotNull;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -22,7 +23,7 @@ import lombok.ToString;
 @JsonAutoDetect(fieldVisibility = Visibility.ANY)
 @ToString
 @EqualsAndHashCode
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 @AllArgsConstructor
 public class OrderDto {
 

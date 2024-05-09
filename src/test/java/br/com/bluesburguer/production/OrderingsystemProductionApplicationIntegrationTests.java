@@ -4,11 +4,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 
-import br.com.bluesburguer.production.utils.BaseIntegrationTest;
+import br.com.bluesburguer.production.support.SqsBaseIntegrationSupport;
 
-class OrderingsystemProductionApplicationIntegrationTests extends BaseIntegrationTest {
+class OrderingsystemProductionApplicationIntegrationTests extends SqsBaseIntegrationSupport {
 
-	//@Test
+	@Test
 	void context() {
 		assertThat(super.hashCode()).isNotZero();
 	}

@@ -1,4 +1,4 @@
-package br.com.bluesburguer.production.utils;
+package br.com.bluesburguer.production.support;
 
 import java.io.IOException;
 import java.util.List;
@@ -6,14 +6,10 @@ import java.util.UUID;
 
 import org.junit.ClassRule;
 import org.junit.jupiter.api.BeforeAll;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.springframework.test.context.TestPropertySource;
 import org.testcontainers.containers.Network;
 import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.containers.localstack.LocalStackContainer.Service;
@@ -21,33 +17,14 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
-import br.com.bluesburguer.production.OrderingsystemProductionApplication;
+import br.com.bluesburguer.production.configuration.SqsTestConfig;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@TestPropertySource("classpath:application-test.properties")
-@SpringBootTest(
-		classes = { OrderingsystemProductionApplication.class },
-		properties = { 
-				"spring.main.allow-bean-definition-overriding=true",
-//				"server.port=0", 
-				"spring.cloud.bus.enabled=false",
-				"spring.cloud.consul.enabled=false", 
-				"spring.cloud.consul.discovery.enabled=false",
-				"cloud.aws.region.use-default-aws-region-chain=true",
-				"cloud.aws.stack.auto=false",
-				"cloud.aws.region.auto=false",
-				"cloud.aws.stack=false",
-				"cloud.aws.sqs.listener.auto-startup=true"
-		},
-		webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
-)
-@ActiveProfiles({ "test" })
-@ContextConfiguration(classes = OrderingsystemProductionApplication.class)
 @Import(SqsTestConfig.class)
 @Testcontainers
 @DirtiesContext
-public abstract class BaseIntegrationTest {
+public abstract class SqsBaseIntegrationSupport extends ApplicationIntegrationSupport {
 	
 	@ClassRule
 	public static final DockerImageName LOCALSTACK_IMG_NAME = 
@@ -60,7 +37,6 @@ public abstract class BaseIntegrationTest {
 			LOCALSTACK_IMG_NAME
 		)
 			.withEnv("DEBUG", "1")
-//			.withEnv("HOSTNAME_EXTERNAL", "localstack")
 			.withEnv("SQS_ENDPOINT_STRATEGY", "domain")
 			.withEnv("LOCALSTACK_HOST", "127.0.0.1")
 		    .withNetwork(network)
@@ -80,6 +56,7 @@ public abstract class BaseIntegrationTest {
 	
 	@DynamicPropertySource
 	static void overrideProperties(DynamicPropertyRegistry registry) {
+		registry.add("cloud.aws.sqs.listener.auto-startup", () -> "true");
 		registry.add("cloud.aws.region.static", localstackInDockerNetwork.getRegion()::toString);
 	    registry.add("cloud.aws.credentials.access-key", localstackInDockerNetwork.getAccessKey()::toString);
 	    registry.add("cloud.aws.credentials.secret-key", localstackInDockerNetwork.getSecretKey()::toString);
