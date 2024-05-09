@@ -22,3 +22,13 @@ list-queues:
 	
 check-queues:
 	@ curl -s localhost:4566/_localstack/init
+	
+sonar:
+	@ docker run --rm -v "$(pwd):/usr" --network="host" -e SONAR_HOST_URL="http://localhost:9000" -e SONAR_TOKEN="sqa_336a23aa830fa09f862c07ad75d6032f0ce3d003" -e SONAR_SCANNER_OPTS="-Dsonar.projectKey=Orderingsystem-Production" sonarsource/sonar-scanner-cli
+
+sonar-scanner:
+	@ mvnw clean verify sonar:sonar \
+  		-Dsonar.projectKey=Production \
+  		-Dsonar.projectName='Production' \
+  		-Dsonar.host.url=http://127.0.0.1:9000 \
+  		-Dsonar.token=sqp_b12951f6a83a0b69bb2d0783a39347cbdb1ce8ac
