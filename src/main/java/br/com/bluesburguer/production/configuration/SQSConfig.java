@@ -72,7 +72,7 @@ public class SQSConfig {
 
         messageConverter.setStrictContentTypeMatch(false);
         return List.of(
-                new HeaderMethodArgumentResolver(null, null),
+                new HeaderMethodArgumentResolver(null, null), // NOSONAR
                 new HeadersMethodArgumentResolver(),
                 new NotificationSubjectArgumentResolver(),
                 new AcknowledgmentHandlerMethodArgumentResolver(ACKNOWLEDGMENT),
