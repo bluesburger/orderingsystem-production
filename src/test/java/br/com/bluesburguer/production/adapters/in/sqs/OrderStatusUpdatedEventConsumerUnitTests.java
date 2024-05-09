@@ -1,6 +1,5 @@
 package br.com.bluesburguer.production.adapters.in.sqs;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.never;
@@ -20,17 +19,19 @@ import org.springframework.cloud.aws.messaging.listener.Acknowledgment;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.exc.ValueInstantiationException;
 
+import br.com.bluesburguer.production.adapters.in.sqs.dto.OrderCanceled;
+import br.com.bluesburguer.production.adapters.in.sqs.dto.OrderDelivered;
+import br.com.bluesburguer.production.adapters.in.sqs.dto.OrderDelivering;
+import br.com.bluesburguer.production.adapters.in.sqs.dto.OrderInProduction;
+import br.com.bluesburguer.production.adapters.in.sqs.dto.OrderPaid;
+import br.com.bluesburguer.production.adapters.in.sqs.dto.OrderProduced;
 import br.com.bluesburguer.production.core.domain.Fase;
 import br.com.bluesburguer.production.core.domain.Step;
 import br.com.bluesburguer.production.ports.OrderPort;
 
 @ExtendWith(MockitoExtension.class)
 class OrderStatusUpdatedEventConsumerUnitTests {
-	
-	private static final String ORDER_EVENT_STR = "{\"orderId\":1}";
-	private static final String CANCELED_EVENT_FORMAT = "{\"orderId\":1, \"step\": \"%s\"}";
 	
 	@Mock
 	OrderPort orderPort;
@@ -50,9 +51,9 @@ class OrderStatusUpdatedEventConsumerUnitTests {
 		void shouldHandleOrderPaid_AndAckEventWhenOrderUpdatedWithSuccess() throws JsonProcessingException {
 			// given
 			when(orderPort.update(1L, Step.KITCHEN, Fase.PENDING)).thenReturn(true);
-			
+			var order = OrderPaid.builder().orderId(1L).build();
 			// when
-			consumer.handleOrderPaid(ORDER_EVENT_STR, ack);
+			consumer.handle(order, ack);
 			
 			// then
 			verify(orderPort).update(1L, Step.KITCHEN, Fase.PENDING);
@@ -63,9 +64,10 @@ class OrderStatusUpdatedEventConsumerUnitTests {
 		void shouldHandleOrderPaid_AndUnAckEventWhenOrderNotUpdatedWithSuccess() throws JsonProcessingException {
 			// given
 			when(orderPort.update(1L, Step.KITCHEN, Fase.PENDING)).thenReturn(false);
+			var order = OrderPaid.builder().orderId(1L).build();
 			
 			// when
-			consumer.handleOrderPaid(ORDER_EVENT_STR, ack);
+			consumer.handle(order, ack);
 			
 			// then
 			verify(orderPort).update(1L, Step.KITCHEN, Fase.PENDING);
@@ -74,9 +76,11 @@ class OrderStatusUpdatedEventConsumerUnitTests {
 		
 		@Test
 		void shouldHandleOrderPaid_AndUnAckEventWhenOrderIsMalformed() throws JsonProcessingException {
+			// given
+			OrderPaid order = null;
 			
 			// when
-			assertThrows(ValueInstantiationException.class, () -> consumer.handleOrderPaid("{}", ack));
+			consumer.handle(order, ack);
 			
 			// then
 			verify(orderPort, never()).update(anyLong(), any(Step.class), any(Fase.class));
@@ -90,9 +94,10 @@ class OrderStatusUpdatedEventConsumerUnitTests {
 		void shouldHandleOrderInProduction_AndAckEventWhenOrderUpdatedWithSuccess() throws JsonProcessingException {
 			// given
 			when(orderPort.update(1L, Step.KITCHEN, Fase.IN_PROGRESS)).thenReturn(true);
+			var order = OrderInProduction.builder().orderId(1L).build();
 			
 			// when
-			consumer.handleOrderInProduction(ORDER_EVENT_STR, ack);
+			consumer.handle(order, ack);
 			
 			// then
 			verify(orderPort).update(1L, Step.KITCHEN, Fase.IN_PROGRESS);
@@ -103,9 +108,10 @@ class OrderStatusUpdatedEventConsumerUnitTests {
 		void shouldHandleOrderInProduction_AndUnAckEventWhenOrderNotUpdatedWithSuccess() throws JsonProcessingException {
 			// given
 			when(orderPort.update(1L, Step.KITCHEN, Fase.IN_PROGRESS)).thenReturn(false);
+			var order = OrderInProduction.builder().orderId(1L).build();
 			
 			// when
-			consumer.handleOrderInProduction(ORDER_EVENT_STR, ack);
+			consumer.handle(order, ack);
 			
 			// then
 			verify(orderPort).update(1L, Step.KITCHEN, Fase.IN_PROGRESS);
@@ -114,9 +120,11 @@ class OrderStatusUpdatedEventConsumerUnitTests {
 		
 		@Test
 		void shouldHandleOrderInProduction_AndUnAckEventWhenOrderIsMalformed() throws JsonProcessingException {
+			// given
+			OrderInProduction order = null;
 			
 			// when
-			assertThrows(ValueInstantiationException.class, () -> consumer.handleOrderInProduction("{}", ack));
+			consumer.handle(order, ack);
 			
 			// then
 			verify(orderPort, never()).update(anyLong(), any(Step.class), any(Fase.class));
@@ -130,9 +138,10 @@ class OrderStatusUpdatedEventConsumerUnitTests {
 		void shouldHandleOrderProduced_AndAckEventWhenOrderUpdatedWithSuccess() throws JsonProcessingException {
 			// given
 			when(orderPort.update(1L, Step.DELIVERY, Fase.PENDING)).thenReturn(true);
+			var order = OrderProduced.builder().orderId(1L).build();
 			
 			// when
-			consumer.handleOrderProduced(ORDER_EVENT_STR, ack);
+			consumer.handle(order, ack);
 			
 			// then
 			verify(orderPort).update(1L, Step.DELIVERY, Fase.PENDING);
@@ -143,9 +152,10 @@ class OrderStatusUpdatedEventConsumerUnitTests {
 		void shouldHandleOrderProduced_AndUnAckEventWhenOrderNotUpdatedWithSuccess() throws JsonProcessingException {
 			// given
 			when(orderPort.update(1L, Step.DELIVERY, Fase.PENDING)).thenReturn(false);
+			var order = OrderProduced.builder().orderId(1L).build();
 			
 			// when
-			consumer.handleOrderProduced(ORDER_EVENT_STR, ack);
+			consumer.handle(order, ack);
 			
 			// then
 			verify(orderPort).update(1L, Step.DELIVERY, Fase.PENDING);
@@ -154,9 +164,11 @@ class OrderStatusUpdatedEventConsumerUnitTests {
 		
 		@Test
 		void shouldHandleOrderProduced_AndUnAckEventWhenOrderIsMalformed() throws JsonProcessingException {
+			// given
+			OrderProduced order = null;
 			
 			// when
-			assertThrows(ValueInstantiationException.class, () -> consumer.handleOrderProduced("{}", ack));
+			consumer.handle(order, ack);
 			
 			// then
 			verify(orderPort, never()).update(anyLong(), any(Step.class), any(Fase.class));
@@ -170,9 +182,10 @@ class OrderStatusUpdatedEventConsumerUnitTests {
 		void shouldHandleOrderDelivering_AndAckEventWhenOrderUpdatedWithSuccess() throws JsonProcessingException {
 			// given
 			when(orderPort.update(1L, Step.DELIVERY, Fase.IN_PROGRESS)).thenReturn(true);
+			var order = OrderDelivering.builder().orderId(1L).build();
 			
 			// when
-			consumer.handleOrderDelivering(ORDER_EVENT_STR, ack);
+			consumer.handle(order, ack);
 			
 			// then
 			verify(orderPort).update(1L, Step.DELIVERY, Fase.IN_PROGRESS);
@@ -183,9 +196,10 @@ class OrderStatusUpdatedEventConsumerUnitTests {
 		void shouldHandleOrderDelivering_AndUnAckEventWhenOrderNotUpdatedWithSuccess() throws JsonProcessingException {
 			// given
 			when(orderPort.update(1L, Step.DELIVERY, Fase.IN_PROGRESS)).thenReturn(false);
+			var order = OrderDelivering.builder().orderId(1L).build();
 			
 			// when
-			consumer.handleOrderDelivering(ORDER_EVENT_STR, ack);
+			consumer.handle(order, ack);
 			
 			// then
 			verify(orderPort).update(1L, Step.DELIVERY, Fase.IN_PROGRESS);
@@ -194,9 +208,11 @@ class OrderStatusUpdatedEventConsumerUnitTests {
 		
 		@Test
 		void shouldHandleOrderDelivering_AndUnAckEventWhenOrderIsMalformed() throws JsonProcessingException {
+			// given
+			OrderDelivering order = null;
 			
 			// when
-			assertThrows(ValueInstantiationException.class, () -> consumer.handleOrderDelivering("{}", ack));
+			consumer.handle(order, ack);
 			
 			// then
 			verify(orderPort, never()).update(anyLong(), any(Step.class), any(Fase.class));
@@ -210,9 +226,10 @@ class OrderStatusUpdatedEventConsumerUnitTests {
 		void shouldHandleOrderDelivered_AndAckEventWhenOrderUpdatedWithSuccess() throws JsonProcessingException {
 			// given
 			when(orderPort.update(1L, Step.DELIVERY, Fase.DONE)).thenReturn(true);
+			var order = OrderDelivered.builder().orderId(1L).build();
 			
 			// when
-			consumer.handleOrderDelivered(ORDER_EVENT_STR, ack);
+			consumer.handle(order, ack);
 			
 			// then
 			verify(orderPort).update(1L, Step.DELIVERY, Fase.DONE);
@@ -223,9 +240,10 @@ class OrderStatusUpdatedEventConsumerUnitTests {
 		void shouldHandleOrderDelivered_AndUnAckEventWhenOrderNotUpdatedWithSuccess() throws JsonProcessingException {
 			// given
 			when(orderPort.update(1L, Step.DELIVERY, Fase.DONE)).thenReturn(false);
+			var order = OrderDelivered.builder().orderId(1L).build();
 			
 			// when
-			consumer.handleOrderDelivered(ORDER_EVENT_STR, ack);
+			consumer.handle(order, ack);
 			
 			// then
 			verify(orderPort).update(1L, Step.DELIVERY, Fase.DONE);
@@ -234,9 +252,11 @@ class OrderStatusUpdatedEventConsumerUnitTests {
 		
 		@Test
 		void shouldHandleOrderDelivered_AndUnAckEventWhenOrderIsMalformed() throws JsonProcessingException {
+			// given
+			OrderDelivered order = null;
 			
 			// when
-			assertThrows(ValueInstantiationException.class, () -> consumer.handleOrderDelivered("{}", ack));
+			consumer.handle(order, ack);
 			
 			// then
 			verify(orderPort, never()).update(anyLong(), any(Step.class), any(Fase.class));
@@ -251,9 +271,10 @@ class OrderStatusUpdatedEventConsumerUnitTests {
 		void shouldHandleOrderCanceled_AndAckEventWhenOrderUpdatedWithSuccess(Step step) throws JsonProcessingException {
 			// given
 			when(orderPort.update(1L, step, Fase.CANCELED)).thenReturn(true);
+			var order = OrderCanceled.builder().step(step).orderId(1L).build();
 			
 			// when
-			consumer.handleOrderCanceled(String.format(CANCELED_EVENT_FORMAT, step), ack);
+			consumer.handle(order, ack);
 			
 			// then
 			verify(orderPort).update(1L, step, Fase.CANCELED);
@@ -265,9 +286,10 @@ class OrderStatusUpdatedEventConsumerUnitTests {
 		void shouldHandleOrderCanceled_AndUnAckEventWhenOrderNotUpdatedWithSuccess(Step step) throws JsonProcessingException {
 			// given
 			when(orderPort.update(1L, step, Fase.CANCELED)).thenReturn(false);
+			var order = OrderCanceled.builder().step(step).orderId(1L).build();
 			
 			// when
-			consumer.handleOrderCanceled(String.format(CANCELED_EVENT_FORMAT, step), ack);
+			consumer.handle(order, ack);
 			
 			// then
 			verify(orderPort).update(1L, step, Fase.CANCELED);
@@ -276,32 +298,11 @@ class OrderStatusUpdatedEventConsumerUnitTests {
 		
 		@Test
 		void shouldHandleOrderCanceled_AndUnackEventWhenOrderIsMalformed_BecauseIsEmpty() throws JsonProcessingException {
+			// given
+			OrderCanceled order = null;
 			
 			// when
-			assertThrows(ValueInstantiationException.class, () -> consumer.handleOrderCanceled("{}", ack));
-			
-			// then
-			verify(orderPort, never()).update(anyLong(), any(Step.class), any(Fase.class));
-			verify(ack, never()).acknowledge();
-		}
-		
-		@ParameterizedTest
-		@EnumSource(Step.class)
-		void shouldHandleOrderCanceled_AndUnackEventWhenOrderIsMalformed_BecauseHasNoOrderId(Step step) throws JsonProcessingException {
-			
-			// when
-			assertThrows(ValueInstantiationException.class, () -> consumer.handleOrderCanceled("{\"step\": \"" + step + "\"}", ack));
-			
-			// then
-			verify(orderPort, never()).update(anyLong(), any(Step.class), any(Fase.class));
-			verify(ack, never()).acknowledge();
-		}
-		
-		@Test
-		void shouldHandleOrderCanceled_AndUnackEventWhenOrderIsMalformed_BecauseHasNoStep() throws JsonProcessingException {
-			
-			// when
-			assertThrows(ValueInstantiationException.class, () -> consumer.handleOrderCanceled("{\"orderId\": \"1\"}", ack));
+			consumer.handle(order, ack);
 			
 			// then
 			verify(orderPort, never()).update(anyLong(), any(Step.class), any(Fase.class));

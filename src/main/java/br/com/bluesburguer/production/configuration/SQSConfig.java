@@ -1,10 +1,23 @@
 package br.com.bluesburguer.production.configuration;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.aws.core.env.ResourceIdResolver;
+import org.springframework.cloud.aws.messaging.config.QueueMessageHandlerFactory;
 import org.springframework.cloud.aws.messaging.core.QueueMessagingTemplate;
+import org.springframework.cloud.aws.messaging.listener.support.AcknowledgmentHandlerMethodArgumentResolver;
+import org.springframework.cloud.aws.messaging.listener.support.VisibilityHandlerMethodArgumentResolver;
+import org.springframework.cloud.aws.messaging.support.NotificationSubjectArgumentResolver;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.messaging.converter.MappingJackson2MessageConverter;
+import org.springframework.messaging.converter.MessageConverter;
+import org.springframework.messaging.handler.annotation.support.HeaderMethodArgumentResolver;
+import org.springframework.messaging.handler.annotation.support.HeadersMethodArgumentResolver;
+import org.springframework.messaging.handler.annotation.support.PayloadMethodArgumentResolver;
+import org.springframework.messaging.handler.invocation.HandlerMethodArgumentResolver;
 
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
@@ -18,6 +31,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 @Configuration
 public class SQSConfig {
+	
+	private static final String ACKNOWLEDGMENT = "Acknowledgment";
+    private static final String VISIBILITY = "Visibility";
 
 	@Value("${cloud.aws.region.static}")
 	private String region;
@@ -41,15 +57,50 @@ public class SQSConfig {
 						new AWSStaticCredentialsProvider(new BasicAWSCredentials(accessKeyId, secretAccessKey)))
 				.build();
 	}
+	
+	/** Provides a deserialization template for incoming SQS messages */
+	@Bean
+	QueueMessageHandlerFactory queueMessageHandlerFactory(MessageConverter messageConverter) {
 
+	    var factory = new QueueMessageHandlerFactory();
+	    factory.setArgumentResolvers(initArgumentResolvers());
+	    return factory;
+	}
+	
+	private List<HandlerMethodArgumentResolver> initArgumentResolvers() {
+        MappingJackson2MessageConverter messageConverter = new MappingJackson2MessageConverter();
+
+        messageConverter.setStrictContentTypeMatch(false);
+        return List.of(
+                new HeaderMethodArgumentResolver(null, null),
+                new HeadersMethodArgumentResolver(),
+                new NotificationSubjectArgumentResolver(),
+                new AcknowledgmentHandlerMethodArgumentResolver(ACKNOWLEDGMENT),
+                new VisibilityHandlerMethodArgumentResolver(VISIBILITY),
+                new PayloadMethodArgumentResolver(messageConverter));
+    }
+
+	/** Provides a serialization template for outgoing SQS messages */
 	@Bean
 	@Primary
-	QueueMessagingTemplate queueMessagingTemplate() {
-		return new QueueMessagingTemplate(amazonSQSAsync());
+	QueueMessagingTemplate queueMessagingTemplate(AmazonSQSAsync amazonSQSAsync, MessageConverter messageConverter) {
+		return new QueueMessagingTemplate(amazonSQSAsync, (ResourceIdResolver) null, messageConverter);
 	}
 
 	@Bean
 	ObjectMapper objectMapper() {
 		return new ObjectMapper();
+	}
+	
+	/** Provides JSON converter for SQS messages */
+	@Bean
+	protected MessageConverter messageConverter(ObjectMapper objectMapper) {
+	  var converter = new MappingJackson2MessageConverter();
+	  converter.setObjectMapper(objectMapper);
+	  // Serialization support:
+	  converter.setSerializedPayloadClass(String.class);
+	  // Deserialization support: (suppress "contentType=application/json" header requirement)
+	  converter.setStrictContentTypeMatch(false);
+	  return converter;
 	}
 }
