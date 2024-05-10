@@ -38,6 +38,36 @@ services:
       interval: 1m
       timeout: 3s
       retries: 60
+   
+  application:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: orderingsystem-production:latest
+    container_name: orderingsystem-production
+    ports:
+      - "30000:9000"
+    networks:
+      - bluesburguer-network
+    depends_on:
+      localstack:
+        condition: service_healthy
+      consul:
+        condition: service_healthy
+    environment:
+      - SPRING_PROFILES_ACTIVE=test
+      - CONSUL_HOST=consul
+      - AWS_ACCESS_KEY=${AWS_ACCESS_KEY}
+      - AWS_SECRET_KEY=${AWS_SECRET_KEY}
+      - AWS_REGION=us-east-1
+    volumes:
+      - db_app:/var/lib/app
+    healthcheck:
+      test: "curl --fail --silent localhost:9000/actuator/health | grep UP || exit 1"
+      interval: 1m
+      timeout: 3s
+      retries: 3
+      start_period: 30s
 
 networks:
   bluesburguer-network:

@@ -31,7 +31,9 @@ class OrderClientIntegrationTests extends ApplicationIntegrationSupport {
 	
 	@RegisterExtension
 	static WireMockExtension wme = WireMockExtension.newInstance()
-		.options(wireMockConfig().notifier(new ConsoleNotifier(true)))
+		.options(wireMockConfig()
+				//.notifier(new ConsoleNotifier(true))
+		)
 		.proxyMode(true)
 		.build();
 

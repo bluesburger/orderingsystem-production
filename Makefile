@@ -1,16 +1,42 @@
 install: down up
 
+down-all: down down-local sonarqube-down
+
+build:
+	@ .\mvnw clean install
+
 up:
 	@ echo Up service
-	@ docker compose up -d --build	
+	@ docker compose up -d --build
+	
+up-local:
+	@ echo Up service
+	@ docker compose -f docker-compose-local.yml up -d	
+	
+up-local-app:
+	@ echo Up service
+	@ docker compose -f docker-compose-local.yml up -d application
 	
 down:
 	@ echo Down services
-	@ docker compose down
+	@ docker compose down --volumes
+	
+down-local:
+	@ echo Down services
+	@ docker compose -f docker-compose-local.yml down --volumes --remove-orphans
+	
+down-local-app:
+	@ echo Down application container
+	@ docker compose -f docker-compose-local.yml down application --volumes --remove-orphans
 
-sonar-scanner:
-	@ mvnw clean verify sonar:sonar \
-  		-Dsonar.projectKey=Production \
-  		-Dsonar.projectName='Production' \
-  		-Dsonar.host.url=http://127.0.0.1:9000 \
-  		-Dsonar.token=sqp_b12951f6a83a0b69bb2d0783a39347cbdb1ce8ac
+sonarqube-up:
+	@ docker compose -f sonarqube.yml up -d
+
+sonarqube-down:
+	@ docker compose -f sonarqube.yml down --volumes
+
+sonarqube-publish:
+	@ .\mvnw sonar:sonar
+	
+sonarqube-analyze: build sonarqube-publish
+	
