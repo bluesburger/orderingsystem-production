@@ -10,11 +10,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 class OrderPaidUnitTests {
 	
+	private static final String ORDER_ID = "556f2b18-bda4-4d05-934f-7c0063d78f48";
+	
 	ObjectMapper mapper = new ObjectMapper();
 
 	@Test
 	void shouldConstructFromJson() throws JsonMappingException, JsonProcessingException {
-		String json = "{\"orderId\":1}";
+		String json = "{\"orderId\":\"" + ORDER_ID + "\"}";
 		OrderPaid orderPaid = mapper.readValue(json, OrderPaid.class);
 		
 		assertThat(orderPaid).isNotNull()
@@ -23,7 +25,7 @@ class OrderPaidUnitTests {
 	
 	@Test
 	void shouldViewToStringWithOrderId() {
-		var orderPaid = OrderPaid.builder().orderId(1L).build();
+		var orderPaid = OrderPaid.builder().orderId(ORDER_ID).build();
 		assertThat(orderPaid).isNotNull()
 			.hasToString("OrderPaid(super=OrderEvent(orderId=1))");
 	}

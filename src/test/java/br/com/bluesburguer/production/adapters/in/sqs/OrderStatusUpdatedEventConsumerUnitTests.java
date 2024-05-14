@@ -1,7 +1,7 @@
 package br.com.bluesburguer.production.adapters.in.sqs;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -33,6 +33,8 @@ import br.com.bluesburguer.production.ports.OrderPort;
 @ExtendWith(MockitoExtension.class)
 class OrderStatusUpdatedEventConsumerUnitTests {
 	
+	private static final String ORDER_ID = "556f2b18-bda4-4d05-934f-7c0063d78f48";
+	
 	@Mock
 	OrderPort orderPort;
 	
@@ -50,27 +52,27 @@ class OrderStatusUpdatedEventConsumerUnitTests {
 		@Test
 		void shouldHandleOrderPaid_AndAckEventWhenOrderUpdatedWithSuccess() throws JsonProcessingException {
 			// given
-			when(orderPort.update(1L, Step.KITCHEN, Fase.PENDING)).thenReturn(true);
-			var order = OrderPaid.builder().orderId(1L).build();
+			when(orderPort.update(ORDER_ID, Step.KITCHEN, Fase.PENDING)).thenReturn(true);
+			var order = OrderPaid.builder().orderId(ORDER_ID).build();
 			// when
 			consumer.handle(order, ack);
 			
 			// then
-			verify(orderPort).update(1L, Step.KITCHEN, Fase.PENDING);
+			verify(orderPort).update(ORDER_ID, Step.KITCHEN, Fase.PENDING);
 			verify(ack).acknowledge();
 		}
 		
 		@Test
 		void shouldHandleOrderPaid_AndUnAckEventWhenOrderNotUpdatedWithSuccess() throws JsonProcessingException {
 			// given
-			when(orderPort.update(1L, Step.KITCHEN, Fase.PENDING)).thenReturn(false);
-			var order = OrderPaid.builder().orderId(1L).build();
+			when(orderPort.update(ORDER_ID, Step.KITCHEN, Fase.PENDING)).thenReturn(false);
+			var order = OrderPaid.builder().orderId(ORDER_ID).build();
 			
 			// when
 			consumer.handle(order, ack);
 			
 			// then
-			verify(orderPort).update(1L, Step.KITCHEN, Fase.PENDING);
+			verify(orderPort).update(ORDER_ID, Step.KITCHEN, Fase.PENDING);
 			verify(ack, never()).acknowledge();
 		}
 		
@@ -83,7 +85,7 @@ class OrderStatusUpdatedEventConsumerUnitTests {
 			consumer.handle(order, ack);
 			
 			// then
-			verify(orderPort, never()).update(anyLong(), any(Step.class), any(Fase.class));
+			verify(orderPort, never()).update(anyString(), any(Step.class), any(Fase.class));
 			verify(ack, never()).acknowledge();
 		}
 	}
@@ -93,28 +95,28 @@ class OrderStatusUpdatedEventConsumerUnitTests {
 		@Test
 		void shouldHandleOrderInProduction_AndAckEventWhenOrderUpdatedWithSuccess() throws JsonProcessingException {
 			// given
-			when(orderPort.update(1L, Step.KITCHEN, Fase.IN_PROGRESS)).thenReturn(true);
-			var order = OrderInProduction.builder().orderId(1L).build();
+			when(orderPort.update(ORDER_ID, Step.KITCHEN, Fase.IN_PROGRESS)).thenReturn(true);
+			var order = OrderInProduction.builder().orderId(ORDER_ID).build();
 			
 			// when
 			consumer.handle(order, ack);
 			
 			// then
-			verify(orderPort).update(1L, Step.KITCHEN, Fase.IN_PROGRESS);
+			verify(orderPort).update(ORDER_ID, Step.KITCHEN, Fase.IN_PROGRESS);
 			verify(ack).acknowledge();
 		}
 		
 		@Test
 		void shouldHandleOrderInProduction_AndUnAckEventWhenOrderNotUpdatedWithSuccess() throws JsonProcessingException {
 			// given
-			when(orderPort.update(1L, Step.KITCHEN, Fase.IN_PROGRESS)).thenReturn(false);
-			var order = OrderInProduction.builder().orderId(1L).build();
+			when(orderPort.update(ORDER_ID, Step.KITCHEN, Fase.IN_PROGRESS)).thenReturn(false);
+			var order = OrderInProduction.builder().orderId(ORDER_ID).build();
 			
 			// when
 			consumer.handle(order, ack);
 			
 			// then
-			verify(orderPort).update(1L, Step.KITCHEN, Fase.IN_PROGRESS);
+			verify(orderPort).update(ORDER_ID, Step.KITCHEN, Fase.IN_PROGRESS);
 			verify(ack, never()).acknowledge();
 		}
 		
@@ -127,7 +129,7 @@ class OrderStatusUpdatedEventConsumerUnitTests {
 			consumer.handle(order, ack);
 			
 			// then
-			verify(orderPort, never()).update(anyLong(), any(Step.class), any(Fase.class));
+			verify(orderPort, never()).update(anyString(), any(Step.class), any(Fase.class));
 			verify(ack, never()).acknowledge();
 		}
 	}
@@ -137,28 +139,28 @@ class OrderStatusUpdatedEventConsumerUnitTests {
 		@Test
 		void shouldHandleOrderProduced_AndAckEventWhenOrderUpdatedWithSuccess() throws JsonProcessingException {
 			// given
-			when(orderPort.update(1L, Step.DELIVERY, Fase.PENDING)).thenReturn(true);
-			var order = OrderProduced.builder().orderId(1L).build();
+			when(orderPort.update(ORDER_ID, Step.DELIVERY, Fase.PENDING)).thenReturn(true);
+			var order = OrderProduced.builder().orderId(ORDER_ID).build();
 			
 			// when
 			consumer.handle(order, ack);
 			
 			// then
-			verify(orderPort).update(1L, Step.DELIVERY, Fase.PENDING);
+			verify(orderPort).update(ORDER_ID, Step.DELIVERY, Fase.PENDING);
 			verify(ack).acknowledge();
 		}
 		
 		@Test
 		void shouldHandleOrderProduced_AndUnAckEventWhenOrderNotUpdatedWithSuccess() throws JsonProcessingException {
 			// given
-			when(orderPort.update(1L, Step.DELIVERY, Fase.PENDING)).thenReturn(false);
-			var order = OrderProduced.builder().orderId(1L).build();
+			when(orderPort.update(ORDER_ID, Step.DELIVERY, Fase.PENDING)).thenReturn(false);
+			var order = OrderProduced.builder().orderId(ORDER_ID).build();
 			
 			// when
 			consumer.handle(order, ack);
 			
 			// then
-			verify(orderPort).update(1L, Step.DELIVERY, Fase.PENDING);
+			verify(orderPort).update(ORDER_ID, Step.DELIVERY, Fase.PENDING);
 			verify(ack, never()).acknowledge();
 		}
 		
@@ -171,7 +173,7 @@ class OrderStatusUpdatedEventConsumerUnitTests {
 			consumer.handle(order, ack);
 			
 			// then
-			verify(orderPort, never()).update(anyLong(), any(Step.class), any(Fase.class));
+			verify(orderPort, never()).update(anyString(), any(Step.class), any(Fase.class));
 			verify(ack, never()).acknowledge();
 		}
 	}
@@ -181,28 +183,28 @@ class OrderStatusUpdatedEventConsumerUnitTests {
 		@Test
 		void shouldHandleOrderDelivering_AndAckEventWhenOrderUpdatedWithSuccess() throws JsonProcessingException {
 			// given
-			when(orderPort.update(1L, Step.DELIVERY, Fase.IN_PROGRESS)).thenReturn(true);
-			var order = OrderDelivering.builder().orderId(1L).build();
+			when(orderPort.update(ORDER_ID, Step.DELIVERY, Fase.IN_PROGRESS)).thenReturn(true);
+			var order = OrderDelivering.builder().orderId(ORDER_ID).build();
 			
 			// when
 			consumer.handle(order, ack);
 			
 			// then
-			verify(orderPort).update(1L, Step.DELIVERY, Fase.IN_PROGRESS);
+			verify(orderPort).update(ORDER_ID, Step.DELIVERY, Fase.IN_PROGRESS);
 			verify(ack).acknowledge();
 		}
 		
 		@Test
 		void shouldHandleOrderDelivering_AndUnAckEventWhenOrderNotUpdatedWithSuccess() throws JsonProcessingException {
 			// given
-			when(orderPort.update(1L, Step.DELIVERY, Fase.IN_PROGRESS)).thenReturn(false);
-			var order = OrderDelivering.builder().orderId(1L).build();
+			when(orderPort.update(ORDER_ID, Step.DELIVERY, Fase.IN_PROGRESS)).thenReturn(false);
+			var order = OrderDelivering.builder().orderId(ORDER_ID).build();
 			
 			// when
 			consumer.handle(order, ack);
 			
 			// then
-			verify(orderPort).update(1L, Step.DELIVERY, Fase.IN_PROGRESS);
+			verify(orderPort).update(ORDER_ID, Step.DELIVERY, Fase.IN_PROGRESS);
 			verify(ack, never()).acknowledge();
 		}
 		
@@ -215,7 +217,7 @@ class OrderStatusUpdatedEventConsumerUnitTests {
 			consumer.handle(order, ack);
 			
 			// then
-			verify(orderPort, never()).update(anyLong(), any(Step.class), any(Fase.class));
+			verify(orderPort, never()).update(anyString(), any(Step.class), any(Fase.class));
 			verify(ack, never()).acknowledge();
 		}
 	}
@@ -225,28 +227,28 @@ class OrderStatusUpdatedEventConsumerUnitTests {
 		@Test
 		void shouldHandleOrderDelivered_AndAckEventWhenOrderUpdatedWithSuccess() throws JsonProcessingException {
 			// given
-			when(orderPort.update(1L, Step.DELIVERY, Fase.DONE)).thenReturn(true);
-			var order = OrderDelivered.builder().orderId(1L).build();
+			when(orderPort.update(ORDER_ID, Step.DELIVERY, Fase.DONE)).thenReturn(true);
+			var order = OrderDelivered.builder().orderId(ORDER_ID).build();
 			
 			// when
 			consumer.handle(order, ack);
 			
 			// then
-			verify(orderPort).update(1L, Step.DELIVERY, Fase.DONE);
+			verify(orderPort).update(ORDER_ID, Step.DELIVERY, Fase.DONE);
 			verify(ack).acknowledge();
 		}
 		
 		@Test
 		void shouldHandleOrderDelivered_AndUnAckEventWhenOrderNotUpdatedWithSuccess() throws JsonProcessingException {
 			// given
-			when(orderPort.update(1L, Step.DELIVERY, Fase.DONE)).thenReturn(false);
-			var order = OrderDelivered.builder().orderId(1L).build();
+			when(orderPort.update(ORDER_ID, Step.DELIVERY, Fase.DONE)).thenReturn(false);
+			var order = OrderDelivered.builder().orderId(ORDER_ID).build();
 			
 			// when
 			consumer.handle(order, ack);
 			
 			// then
-			verify(orderPort).update(1L, Step.DELIVERY, Fase.DONE);
+			verify(orderPort).update(ORDER_ID, Step.DELIVERY, Fase.DONE);
 			verify(ack, never()).acknowledge();
 		}
 		
@@ -259,7 +261,7 @@ class OrderStatusUpdatedEventConsumerUnitTests {
 			consumer.handle(order, ack);
 			
 			// then
-			verify(orderPort, never()).update(anyLong(), any(Step.class), any(Fase.class));
+			verify(orderPort, never()).update(anyString(), any(Step.class), any(Fase.class));
 			verify(ack, never()).acknowledge();
 		}
 	}
@@ -270,14 +272,14 @@ class OrderStatusUpdatedEventConsumerUnitTests {
 		@EnumSource(Step.class)
 		void shouldHandleOrderCanceled_AndAckEventWhenOrderUpdatedWithSuccess(Step step) throws JsonProcessingException {
 			// given
-			when(orderPort.update(1L, step, Fase.CANCELED)).thenReturn(true);
-			var order = OrderCanceled.builder().step(step).orderId(1L).build();
+			when(orderPort.update(ORDER_ID, step, Fase.CANCELED)).thenReturn(true);
+			var order = OrderCanceled.builder().step(step).orderId(ORDER_ID).build();
 			
 			// when
 			consumer.handle(order, ack);
 			
 			// then
-			verify(orderPort).update(1L, step, Fase.CANCELED);
+			verify(orderPort).update(ORDER_ID, step, Fase.CANCELED);
 			verify(ack).acknowledge();
 		}
 		
@@ -285,14 +287,14 @@ class OrderStatusUpdatedEventConsumerUnitTests {
 		@EnumSource(Step.class)
 		void shouldHandleOrderCanceled_AndUnAckEventWhenOrderNotUpdatedWithSuccess(Step step) throws JsonProcessingException {
 			// given
-			when(orderPort.update(1L, step, Fase.CANCELED)).thenReturn(false);
-			var order = OrderCanceled.builder().step(step).orderId(1L).build();
+			when(orderPort.update(ORDER_ID, step, Fase.CANCELED)).thenReturn(false);
+			var order = OrderCanceled.builder().step(step).orderId(ORDER_ID).build();
 			
 			// when
 			consumer.handle(order, ack);
 			
 			// then
-			verify(orderPort).update(1L, step, Fase.CANCELED);
+			verify(orderPort).update(ORDER_ID, step, Fase.CANCELED);
 			verify(ack, never()).acknowledge();
 		}
 		
@@ -305,7 +307,7 @@ class OrderStatusUpdatedEventConsumerUnitTests {
 			consumer.handle(order, ack);
 			
 			// then
-			verify(orderPort, never()).update(anyLong(), any(Step.class), any(Fase.class));
+			verify(orderPort, never()).update(anyString(), any(Step.class), any(Fase.class));
 			verify(ack, never()).acknowledge();
 		}
 	}

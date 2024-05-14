@@ -23,7 +23,7 @@ public class OrderCanceled extends OrderEvent {
 	private Step step;
 	
 	@JsonCreator
-	public OrderCanceled(@NonNull @JsonProperty("orderId") Long orderId, @NonNull @JsonProperty("step") Step step) {
+	public OrderCanceled(@NonNull @JsonProperty("orderId") String orderId, @NonNull @JsonProperty("step") Step step) {
 		super(orderId);
 		this.step = step;
 	}

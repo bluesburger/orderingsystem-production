@@ -15,7 +15,7 @@ public class OrderService implements OrderPort {
 	
 	private final OrderClient orderClient;
 
-	public boolean update(Long orderId, Step newStep, Fase newFase) {
+	public boolean update(String orderId, Step newStep, Fase newFase) {
 		var updatedOrder = orderClient.updateStepAndFase(orderId, newStep, newFase);
 		return validateUpdateResponse(updatedOrder, newStep, newFase);
 	}

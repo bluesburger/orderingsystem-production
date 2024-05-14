@@ -24,10 +24,10 @@ public abstract class OrderEvent implements Serializable {
 	
 	@NonNull
 	@JsonProperty
-	protected Long orderId;
+	protected String orderId;
 	
 	@JsonCreator
-	protected OrderEvent(@NonNull @JsonProperty("orderId") Long orderId) {
+	protected OrderEvent(@NonNull @JsonProperty("orderId") String orderId) {
 		this.orderId = orderId;
 	}
 }

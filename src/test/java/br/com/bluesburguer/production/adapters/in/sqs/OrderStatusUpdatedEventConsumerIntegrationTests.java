@@ -4,7 +4,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
 
 import java.util.List;
@@ -68,7 +68,7 @@ class OrderStatusUpdatedEventConsumerIntegrationTests extends SqsBaseIntegration
 	void setUp() {
 		doReturn(true)
 			.when(orderPort)
-			.update(anyLong(), any(Step.class), any(Fase.class));
+			.update(anyString(), any(Step.class), any(Fase.class));
 	}
 	
 	@ParameterizedTest
@@ -118,6 +118,7 @@ class OrderStatusUpdatedEventConsumerIntegrationTests extends SqsBaseIntegration
 	}
 	
 	private static Stream<OrderEvent> generateOrders() {
+		String orderId = "556f2b18-bda4-4d05-934f-7c0063d78f48";
 		return Stream.of(
 				OrderPaid.builder(), 
 				OrderInProduction.builder(),
@@ -125,7 +126,7 @@ class OrderStatusUpdatedEventConsumerIntegrationTests extends SqsBaseIntegration
 				OrderDelivering.builder(),
 				OrderDelivered.builder(),
 				OrderCanceled.builder().step(Step.KITCHEN)
-			).map(b -> b.orderId(1L).build());
+			).map(b -> b.orderId(orderId).build());
 	}
 	
 	private Integer numberOfMessagesInQueue(String consumerQueueName) {

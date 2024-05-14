@@ -10,11 +10,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 class OrderDeliveringUnitTests {
 	
+	private static final String ORDER_ID = "556f2b18-bda4-4d05-934f-7c0063d78f48";
+	
 	ObjectMapper mapper = new ObjectMapper();
 
 	@Test
 	void shouldPrintToStringWithOrderId() {
-		var order = OrderDelivering.builder().orderId(1L).build();
+		var order = OrderDelivering.builder().orderId(ORDER_ID).build();
 		
 		assertThat(order).isNotNull();
 		assertThat(order.toString()).isNotNull()

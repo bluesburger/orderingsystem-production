@@ -14,12 +14,14 @@ import br.com.bluesburguer.production.core.domain.Step;
 
 class OrderCanceledUnitTests {
 	
+	private static final String ORDER_ID = "556f2b18-bda4-4d05-934f-7c0063d78f48";
+	
 	ObjectMapper mapper = new ObjectMapper();
 
 	@Test
 	void shouldPrintToStringWithOrderId() {
 		var order = OrderCanceled.builder()
-				.orderId(1L)
+				.orderId(ORDER_ID)
 				.step(Step.KITCHEN)
 				.build();
 		

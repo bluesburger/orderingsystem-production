@@ -17,6 +17,8 @@ import br.com.bluesburguer.production.core.domain.Step;
 
 @ExtendWith(MockitoExtension.class)
 class OrderServiceUnitTests {
+	
+	private static final String ORDER_ID = "556f2b18-bda4-4d05-934f-7c0063d78f48";
 
 	@Mock
 	OrderClient orderClient;
@@ -32,10 +34,10 @@ class OrderServiceUnitTests {
 	void shouldReturnNull_WhenServerReturnNull_WithAllPossibleParameters(Step step, Fase fase) {
 		
 		// given
-		when(orderClient.updateStepAndFase(1L, step, fase)).thenReturn(null);
+		when(orderClient.updateStepAndFase(ORDER_ID, step, fase)).thenReturn(null);
 		
 		// when
-		assertThat(orderService.update(1L, step, fase))
+		assertThat(orderService.update(ORDER_ID, step, fase))
 			.isFalse();
 	}
 	
@@ -45,10 +47,10 @@ class OrderServiceUnitTests {
 		
 		// given
 		when(orderDto.getId()).thenReturn(null);
-		when(orderClient.updateStepAndFase(1L, step, fase)).thenReturn(orderDto);
+		when(orderClient.updateStepAndFase(ORDER_ID, step, fase)).thenReturn(orderDto);
 		
 		// when
-		assertThat(orderService.update(1L, step, fase))
+		assertThat(orderService.update(ORDER_ID, step, fase))
 			.isFalse();
 	}
 	
@@ -57,11 +59,11 @@ class OrderServiceUnitTests {
 	void shouldReturnNull_WhenServerReturnValidId_WithAllPossibleParameters(Step step, Fase fase) {
 		
 		// given
-		when(orderDto.getId()).thenReturn(1L);
-		when(orderClient.updateStepAndFase(1L, step, fase)).thenReturn(orderDto);
+		when(orderDto.getId()).thenReturn(ORDER_ID);
+		when(orderClient.updateStepAndFase(ORDER_ID, step, fase)).thenReturn(orderDto);
 		
 		// when
-		assertThat(orderService.update(1L, step, fase))
+		assertThat(orderService.update(ORDER_ID, step, fase))
 			.isFalse();
 	}
 	
@@ -70,12 +72,12 @@ class OrderServiceUnitTests {
 	void shouldReturnNull_WhenServerReturnValidIdAndValidStep_WithAllPossibleParameters(Step step, Fase fase) {
 		
 		// given
-		when(orderDto.getId()).thenReturn(1L);
+		when(orderDto.getId()).thenReturn(ORDER_ID);
 		when(orderDto.getStep()).thenReturn(step);
-		when(orderClient.updateStepAndFase(1L, step, fase)).thenReturn(orderDto);
+		when(orderClient.updateStepAndFase(ORDER_ID, step, fase)).thenReturn(orderDto);
 		
 		// when
-		assertThat(orderService.update(1L, step, fase))
+		assertThat(orderService.update(ORDER_ID, step, fase))
 			.isFalse();
 	}
 	
@@ -84,13 +86,13 @@ class OrderServiceUnitTests {
 	void shouldUpdateOrderStepAndFase_WithAllPossibleParameters(Step step, Fase fase) {
 		
 		// given
-		when(orderDto.getId()).thenReturn(1L);
+		when(orderDto.getId()).thenReturn(ORDER_ID);
 		when(orderDto.getStep()).thenReturn(step);
 		when(orderDto.getFase()).thenReturn(fase);
-		when(orderClient.updateStepAndFase(1L, step, fase)).thenReturn(orderDto);
+		when(orderClient.updateStepAndFase(ORDER_ID, step, fase)).thenReturn(orderDto);
 		
 		// when
-		assertThat(orderService.update(1L, step, fase))
+		assertThat(orderService.update(ORDER_ID, step, fase))
 			.isTrue();
 	}
 }

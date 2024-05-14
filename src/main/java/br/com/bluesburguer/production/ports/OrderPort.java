@@ -5,5 +5,5 @@ import br.com.bluesburguer.production.core.domain.Step;
 
 public interface OrderPort {
 
-	boolean update(Long orderId, Step newStep, Fase newFase);
+	boolean update(String orderId, Step newStep, Fase newFase);
 }

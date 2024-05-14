@@ -13,8 +13,8 @@ import br.com.bluesburguer.production.core.domain.Step;
 public interface OrderClient {
 
 	@GetMapping("/api/order/{orderId}")
-	OrderDto getById(@PathVariable("orderId") Long orderId);
+	OrderDto getById(@PathVariable("orderId") String orderId);
 	
 	@PutMapping("/api/order/{orderId}/{step}/{fase}")
-	OrderDto updateStepAndFase(@PathVariable Long orderId, @PathVariable Step step, @PathVariable Fase fase);
+	OrderDto updateStepAndFase(@PathVariable String orderId, @PathVariable Step step, @PathVariable Fase fase);
 }

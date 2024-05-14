@@ -27,7 +27,7 @@ import lombok.ToString;
 @AllArgsConstructor
 public class OrderDto {
 
-	private Long id;
+	private String id;
 	
 	private Step step;
 	

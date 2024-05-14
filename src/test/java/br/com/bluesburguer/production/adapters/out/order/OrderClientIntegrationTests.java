@@ -11,7 +11,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.github.tomakehurst.wiremock.common.ConsoleNotifier;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
@@ -25,6 +24,8 @@ import br.com.bluesburguer.production.support.OrderMocks;
 
 @WireMockTest
 class OrderClientIntegrationTests extends ApplicationIntegrationSupport {
+	
+	private static final String ORDER_ID = "556f2b18-bda4-4d05-934f-7c0063d78f48";
 	
 	@Autowired
 	private OrderClient orderClient;
@@ -43,11 +44,11 @@ class OrderClientIntegrationTests extends ApplicationIntegrationSupport {
 		// given
 		var items = List.of(new OrderItemDto(1L,  1));
 		var user = new UserDto(1L, OrderMocks.mockCpf(), OrderMocks.mockEmail());
-		var orderDto = new OrderDto(1L, step, fase, items, user);
+		var orderDto = new OrderDto(ORDER_ID, step, fase, items, user);
 		OrderMocks.mockOrderClientGetById(wme, orderDto);
 
 		// when
-		var orderResponse = orderClient.getById(1L);
+		var orderResponse = orderClient.getById(ORDER_ID);
 		
 		// then
 		assertThat(orderResponse).isEqualTo(orderDto);
@@ -59,7 +60,7 @@ class OrderClientIntegrationTests extends ApplicationIntegrationSupport {
 		// given
 		var items = List.of(new OrderItemDto(1L,  1));
 		var user = new UserDto(1L, OrderMocks.mockCpf(), OrderMocks.mockEmail());
-		var orderDto = new OrderDto(1L, step, fase, items, user);
+		var orderDto = new OrderDto(ORDER_ID, step, fase, items, user);
 		
 		OrderMocks.mockOrderClientUpdateStepAndFase(wme, orderDto);
 		

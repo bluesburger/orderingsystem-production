@@ -15,36 +15,37 @@ import br.com.bluesburguer.production.support.OrderMocks;
 
 @ExtendWith(MockitoExtension.class)
 class OrderDtoUnitTests {
+	
+	private static final String ORDER_ID = "556f2b18-bda4-4d05-934f-7c0063d78f48";
+	private static final String ORDER_ID_2 = "006ff58b-1bcc-43a1-a45c-5730b635ebc9";
 
 	@Test
 	void whenInstance_thenShouldHaveValues() {
-		var orderId = 1L;
 		var step = Step.DELIVERY;
 		var fase = Fase.PENDING;
 		
 		var items = List.of(new OrderItemDto(1L,  1));
 		var user = new UserDto(1L, OrderMocks.mockCpf(), OrderMocks.mockEmail());
-		var orderDto = new OrderDto(orderId, step, fase, items, user);
+		var orderDto = new OrderDto(ORDER_ID, step, fase, items, user);
 		assertThat(orderDto)
 			.hasFieldOrPropertyWithValue("id", 1L)
 			.hasFieldOrPropertyWithValue("step", step)
 			.hasFieldOrPropertyWithValue("fase", fase)
 			.hasFieldOrPropertyWithValue("items", items)
 			.hasFieldOrPropertyWithValue("user", user)
-			.hasToString(String.format("OrderDto(id=%d, step=%s, fase=%s, items=%s, user=%s)", orderId, step, fase, items, user))
+			.hasToString(String.format("OrderDto(id=%d, step=%s, fase=%s, items=%s, user=%s)", ORDER_ID, step, fase, items, user))
 			.hasSameHashCodeAs(orderDto);
 	}
 	
 	@Test
 	void whenInstance_thenCouldGetFields() {
-		var orderId = 1L;
 		var step = Step.DELIVERY;
 		var fase = Fase.PENDING;
 		
 		var items = List.of(new OrderItemDto(1L,  1));
 		var user = new UserDto(1L, OrderMocks.mockCpf(), OrderMocks.mockEmail());
-		var orderDto = new OrderDto(orderId, step, fase, items, user);
-		assertThat(orderDto.getId()).isEqualTo(orderId);
+		var orderDto = new OrderDto(ORDER_ID, step, fase, items, user);
+		assertThat(orderDto.getId()).isEqualTo(ORDER_ID);
 		assertThat(orderDto.getStep()).isEqualTo(step);
 		assertThat(orderDto.getFase()).isEqualTo(fase);
 		assertThat(orderDto.getItems()).isEqualTo(items);
@@ -53,15 +54,15 @@ class OrderDtoUnitTests {
 	
 	@Test
 	void whenInstance_thenCouldSetId() {
-		var orderDto = new OrderDto(1L, Step.DELIVERY, Fase.PENDING, List.of(), null);
-		assertThat(orderDto.getId()).isEqualTo(1L);
-		orderDto.setId(2L);
-		assertThat(orderDto.getId()).isEqualTo(2L);
+		var orderDto = new OrderDto(ORDER_ID, Step.DELIVERY, Fase.PENDING, List.of(), null);
+		assertThat(orderDto.getId()).isEqualTo(ORDER_ID);
+		orderDto.setId(ORDER_ID_2);
+		assertThat(orderDto.getId()).isEqualTo(ORDER_ID_2);
 	}
 	
 	@Test
 	void whenInstance_thenCouldSetStep() {
-		var orderDto = new OrderDto(1L, Step.DELIVERY, Fase.PENDING, List.of(), null);
+		var orderDto = new OrderDto(ORDER_ID, Step.DELIVERY, Fase.PENDING, List.of(), null);
 		assertThat(orderDto.getStep()).isEqualTo(Step.DELIVERY);
 		orderDto.setStep(Step.KITCHEN);
 		assertThat(orderDto.getStep()).isEqualTo(Step.KITCHEN);
@@ -69,7 +70,7 @@ class OrderDtoUnitTests {
 	
 	@Test
 	void whenInstance_thenCouldSetFase() {
-		var orderDto = new OrderDto(1L, Step.DELIVERY, Fase.PENDING, List.of(), null);
+		var orderDto = new OrderDto(ORDER_ID, Step.DELIVERY, Fase.PENDING, List.of(), null);
 		assertThat(orderDto.getFase()).isEqualTo(Fase.PENDING);
 		orderDto.setFase(Fase.IN_PROGRESS);
 		assertThat(orderDto.getFase()).isEqualTo(Fase.IN_PROGRESS);
@@ -77,7 +78,7 @@ class OrderDtoUnitTests {
 	
 	@Test
 	void whenInstance_thenCouldSetItems() {
-		var orderDto = new OrderDto(1L, Step.DELIVERY, Fase.PENDING, List.of(), null);
+		var orderDto = new OrderDto(ORDER_ID, Step.DELIVERY, Fase.PENDING, List.of(), null);
 		assertThat(orderDto.getItems()).isEqualTo(List.of());
 		var newItem = List.of(new OrderItemDto(1L, 1));
 		orderDto.setItems(newItem);
@@ -86,7 +87,7 @@ class OrderDtoUnitTests {
 	
 	@Test
 	void whenInstance_thenCouldSetUser() {
-		var orderDto = new OrderDto(1L, Step.DELIVERY, Fase.PENDING, List.of(), null);
+		var orderDto = new OrderDto(ORDER_ID, Step.DELIVERY, Fase.PENDING, List.of(), null);
 		assertThat(orderDto.getUser()).isNull();
 		var newUser = new UserDto(1L, OrderMocks.mockCpf(), OrderMocks.mockEmail());
 		orderDto.setUser(newUser);

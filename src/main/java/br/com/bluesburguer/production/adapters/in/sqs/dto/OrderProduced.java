@@ -16,7 +16,7 @@ public class OrderProduced extends OrderEvent {
 	private static final long serialVersionUID = 7702500048926979660L;
 
 	@JsonCreator
-	public OrderProduced(@JsonProperty("orderId") Long orderId) {
+	public OrderProduced(@JsonProperty("orderId") String orderId) {
 		super(orderId);
 	}
 }
