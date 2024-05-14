@@ -9,7 +9,7 @@ import io.swagger.v3.oas.annotations.servers.Server;
 				title = "Ordering System Production",
 				version = "v2.0"
 		),
-		servers = @Server(url = "http://localhost:8080")
+		servers = @Server(url = "http://localhost:${server.port}")
 )
 public class OpenApiConfig {
 

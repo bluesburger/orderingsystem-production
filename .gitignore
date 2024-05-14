@@ -78,3 +78,6 @@ terraform.rc
 
 # SQS
 volume/
+
+# Reports
+allure-results/
