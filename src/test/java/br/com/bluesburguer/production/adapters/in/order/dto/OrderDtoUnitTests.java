@@ -28,12 +28,12 @@ class OrderDtoUnitTests {
 		var user = new UserDto(1L, OrderMocks.mockCpf(), OrderMocks.mockEmail());
 		var orderDto = new OrderDto(ORDER_ID, step, fase, items, user);
 		assertThat(orderDto)
-			.hasFieldOrPropertyWithValue("id", 1L)
+			.hasFieldOrPropertyWithValue("id", ORDER_ID)
 			.hasFieldOrPropertyWithValue("step", step)
 			.hasFieldOrPropertyWithValue("fase", fase)
 			.hasFieldOrPropertyWithValue("items", items)
 			.hasFieldOrPropertyWithValue("user", user)
-			.hasToString(String.format("OrderDto(id=%d, step=%s, fase=%s, items=%s, user=%s)", ORDER_ID, step, fase, items, user))
+			.hasToString(String.format("OrderDto(id=%s, step=%s, fase=%s, items=%s, user=%s)", ORDER_ID, step, fase, items, user))
 			.hasSameHashCodeAs(orderDto);
 	}
 	

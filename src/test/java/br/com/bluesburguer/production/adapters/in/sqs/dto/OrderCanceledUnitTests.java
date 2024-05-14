@@ -27,16 +27,16 @@ class OrderCanceledUnitTests {
 		
 		assertThat(order).isNotNull();
 		assertThat(order.toString()).isNotNull()
-			.isEqualTo("OrderCanceled(super=OrderEvent(orderId=1), step=KITCHEN)");
+			.isEqualTo(String.format("OrderCanceled(super=OrderEvent(orderId=%s), step=KITCHEN)", ORDER_ID));
 	}
 
 	@ParameterizedTest
 	@EnumSource(Step.class)
 	void shouldConstructFromJson(Step step) throws JsonMappingException, JsonProcessingException {
-		String json = "{\"orderId\":1, \"step\": \"" + step + "\"}";
+		String json = String.format("{\"orderId\":\"%s\", \"step\": \"%s\"}", ORDER_ID, step);
 		OrderCanceled order = mapper.readValue(json, OrderCanceled.class);
 		
 		assertThat(order).isNotNull()
-			.hasFieldOrPropertyWithValue("orderId", 1L);
+			.hasFieldOrPropertyWithValue("orderId", ORDER_ID);
 	}
 }

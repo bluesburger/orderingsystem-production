@@ -16,17 +16,17 @@ class OrderPaidUnitTests {
 
 	@Test
 	void shouldConstructFromJson() throws JsonMappingException, JsonProcessingException {
-		String json = "{\"orderId\":\"" + ORDER_ID + "\"}";
+		String json = String.format("{\"orderId\":\"%s\"}", ORDER_ID);
 		OrderPaid orderPaid = mapper.readValue(json, OrderPaid.class);
 		
 		assertThat(orderPaid).isNotNull()
-			.hasFieldOrPropertyWithValue("orderId", 1L);
+			.hasFieldOrPropertyWithValue("orderId", ORDER_ID);
 	}
 	
 	@Test
 	void shouldViewToStringWithOrderId() {
 		var orderPaid = OrderPaid.builder().orderId(ORDER_ID).build();
 		assertThat(orderPaid).isNotNull()
-			.hasToString("OrderPaid(super=OrderEvent(orderId=1))");
+			.hasToString(String.format("OrderPaid(super=OrderEvent(orderId=%s))", ORDER_ID));
 	}
 }

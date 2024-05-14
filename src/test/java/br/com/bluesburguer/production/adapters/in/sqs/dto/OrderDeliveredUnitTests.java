@@ -20,15 +20,15 @@ class OrderDeliveredUnitTests {
 		
 		assertThat(order).isNotNull();
 		assertThat(order.toString()).isNotNull()
-			.isEqualTo("OrderDelivered(super=OrderEvent(orderId=1))");
+			.isEqualTo(String.format("OrderDelivered(super=OrderEvent(orderId=%s))", ORDER_ID));
 	}
 
 	@Test
 	void shouldConstructFromJson() throws JsonMappingException, JsonProcessingException {
-		String json = "{\"orderId\":1}";
+		String json = String.format("{\"orderId\":\"%s\"}", ORDER_ID);
 		OrderDelivered order = mapper.readValue(json, OrderDelivered.class);
 		
 		assertThat(order).isNotNull()
-			.hasFieldOrPropertyWithValue("orderId", 1L);
+			.hasFieldOrPropertyWithValue("orderId", ORDER_ID);
 	}
 }

@@ -8,7 +8,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-class OrderInProducedUnitTests {
+class OrderProducedUnitTests {
 	
 	private static final String ORDER_ID = "556f2b18-bda4-4d05-934f-7c0063d78f48";
 	
@@ -20,15 +20,15 @@ class OrderInProducedUnitTests {
 		
 		assertThat(order).isNotNull();
 		assertThat(order.toString()).isNotNull()
-			.isEqualTo("OrderProduced(super=OrderEvent(orderId=1))");
+			.isEqualTo(String.format("OrderProduced(super=OrderEvent(orderId=%s))", ORDER_ID));
 	}
 
 	@Test
 	void shouldConstructFromJson() throws JsonMappingException, JsonProcessingException {
-		String json = "{\"orderId\":1}";
+		String json = String.format("{\"orderId\":\"%s\"}", ORDER_ID);
 		OrderProduced order = mapper.readValue(json, OrderProduced.class);
 		
 		assertThat(order).isNotNull()
-			.hasFieldOrPropertyWithValue("orderId", 1L);
+			.hasFieldOrPropertyWithValue("orderId", ORDER_ID);
 	}
 }
