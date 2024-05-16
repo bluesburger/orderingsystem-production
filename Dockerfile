@@ -9,7 +9,8 @@ COPY pom.xml .
 COPY src ./src
 
 # Compilando o aplicativo e gerando o arquivo JAR
-RUN mvn clean install -DskipTests=true
+# RUN mvn clean install -DskipTests=true
+RUN mvn clean install -Punit-test
 
 # Usando a imagem do Amazon Corretto para executar o aplicativo
 FROM amazoncorretto:17-al2-jdk
@@ -22,7 +23,7 @@ COPY --from=builder /app/target/*.properties .
 
 
 # Expondo a porta que o aplicativo está ouvindo
-EXPOSE 9000
+EXPOSE 8100
 
 # Comando para iniciar o aplicativo
 ENTRYPOINT ["java", "-jar", "orderingsystem-production-0.0.1-SNAPSHOT.jar"]
