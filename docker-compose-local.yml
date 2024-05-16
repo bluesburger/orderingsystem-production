@@ -43,7 +43,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: orderingsystem-production:latest
+    image: ordering-system-prod:latest
     container_name: orderingsystem-production
     ports:
       - "30000:9000"
