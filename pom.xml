@@ -356,26 +356,6 @@
                 </dependencies>
             </plugin>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-failsafe-plugin</artifactId>
-                <version>3.1.2</version>
-                <configuration>
-                    <includes>
-                        <include>**/*IntegrationTests.java</include>
-                    </includes>
-                    <skipTests>${skipIntegrationTests}</skipTests>
-                    <rerunFailingTestsCount>2</rerunFailingTestsCount>
-                </configuration>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>integration-test</goal>
-                            <goal>verify</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
                 <groupId>io.qameta.allure</groupId>
                 <artifactId>allure-maven</artifactId>
                 <version>2.23.0</version>
@@ -407,6 +387,26 @@
 	</dependencyManagement>
 	
 	<profiles>
+		<profile>
+            <id>unit-test</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <version>3.1.2</version>
+                        <configuration>
+                            <includes combine.self="override">
+                                <exclude>**/*UnitTests.java</exclude>
+                            </includes>
+                            <excludes combine.self="override">
+                                <include>**/*IntegrationTests.java</include>
+                            </excludes>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
         <profile>
             <id>integration-test</id>
             <build>
