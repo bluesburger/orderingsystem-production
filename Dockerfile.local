@@ -1,0 +1,15 @@
+# Usando a imagem do Amazon Corretto para executar o aplicativo
+FROM amazoncorretto:17-al2-jdk
+
+WORKDIR /app
+
+# Copie o JAR gerado a partir da etapa anterior para o contêiner
+COPY target/orderingsystem-production-0.0.1-SNAPSHOT.jar .
+COPY src/main/resources/*.properties .
+
+
+# Expondo a porta que o aplicativo está ouvindo
+EXPOSE 8100
+
+# Comando para iniciar o aplicativo
+ENTRYPOINT ["java", "-jar", "orderingsystem-production-0.0.1-SNAPSHOT.jar"]

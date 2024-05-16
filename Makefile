@@ -2,13 +2,26 @@ install: down up
 
 down-all: down down-local sonarqube-down
 
+build-image:
+	@ docker compose -f docker-compose-local.yml build application
+	@ docker rmi 637423186279.dkr.ecr.us-east-1.amazonaws.com/ordering-system-prod:latest
+	@ docker tag ordering-system-prod:latest 637423186279.dkr.ecr.us-east-1.amazonaws.com/ordering-system-prod:latest
+
 build:
-	@ .\mvnw clean install
+	@ .\mvnw clean install -Ppackage
+
+build-image-local:
+	@ docker build -f .\Dockerfile.local -t ordering-system-prod:latest .
+	@ docker rmi -f 637423186279.dkr.ecr.us-east-1.amazonaws.com/ordering-system-prod:latest
+	@ docker tag ordering-system-prod:latest 637423186279.dkr.ecr.us-east-1.amazonaws.com/ordering-system-prod:latest
 
 up:
 	@ echo Up service
 	@ docker compose up -d --build
 	
+publish-ecr:
+	@ docker push 637423186279.dkr.ecr.us-east-1.amazonaws.com/ordering-system-prod:latest
+
 up-local:
 	@ echo Up service
 	@ docker compose -f docker-compose-local.yml up -d	

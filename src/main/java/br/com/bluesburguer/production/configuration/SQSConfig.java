@@ -38,7 +38,7 @@ public class SQSConfig {
 	@Value("${cloud.aws.region.static}")
 	private String region;
 
-	@Value("${cloud.aws.end-point.uri}")
+	@Value("${cloud.aws.endpoint.uri}")
 	private String sqsUrl;
 
 	@Value("${cloud.aws.credentials.access-key}")
