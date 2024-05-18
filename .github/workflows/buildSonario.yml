@@ -1,10 +1,10 @@
-name: Build
+name: Build Sonar
 
 on:
   push:
     branches:
       - main
-
+  workflow_dispatch:
 
 jobs:
   build:
@@ -37,4 +37,4 @@ jobs:
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SPRING_PROFILES_ACTIVE: test
-        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=Orderingsystem-Production -Dsonar.projectName='Orderingsystem-Production'
+        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=bluesburger_orderingsystem-production
