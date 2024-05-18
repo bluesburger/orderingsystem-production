@@ -5,7 +5,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 class OrderDeliveredUnitTests {
@@ -15,8 +14,17 @@ class OrderDeliveredUnitTests {
 	ObjectMapper mapper = new ObjectMapper();
 
 	@Test
-	void shouldPrintToStringWithOrderId() {
+	void shouldBuildWithOrderId() {
 		var order = OrderDelivered.builder().orderId(ORDER_ID).build();
+		
+		assertThat(order).isNotNull();
+		assertThat(order.toString()).isNotNull()
+			.isEqualTo(String.format("OrderDelivered(super=OrderEvent(orderId=%s))", ORDER_ID));
+	}
+	
+	@Test
+	void shoulInstanceWithOrderId() {
+		var order = new OrderDelivered(ORDER_ID);
 		
 		assertThat(order).isNotNull();
 		assertThat(order.toString()).isNotNull()
@@ -24,11 +32,12 @@ class OrderDeliveredUnitTests {
 	}
 
 	@Test
-	void shouldConstructFromJson() throws JsonMappingException, JsonProcessingException {
+	void shouldConstructFromJson() throws JsonProcessingException {
 		String json = String.format("{\"orderId\":\"%s\"}", ORDER_ID);
 		OrderDelivered order = mapper.readValue(json, OrderDelivered.class);
 		
 		assertThat(order).isNotNull()
 			.hasFieldOrPropertyWithValue("orderId", ORDER_ID);
 	}
+
 }

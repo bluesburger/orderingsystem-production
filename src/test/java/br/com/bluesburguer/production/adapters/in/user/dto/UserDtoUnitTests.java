@@ -5,7 +5,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 class UserDtoUnitTests {
@@ -13,7 +12,7 @@ class UserDtoUnitTests {
 	ObjectMapper mapper = new ObjectMapper();
 	
 	@Test
-	void shouldConstructFromJsonWith_Id() throws JsonMappingException, JsonProcessingException {
+	void shouldConstructFromJsonWith_Id() throws JsonProcessingException {
 		String json = "{\"id\": 1}";
 		UserDto dto = mapper.readValue(json, UserDto.class);
 		assertThat(dto).isNotNull()
@@ -22,7 +21,7 @@ class UserDtoUnitTests {
 	}
 
 	@Test
-	void shouldConstructFromJsonWith_Cpf() throws JsonMappingException, JsonProcessingException {
+	void shouldConstructFromJsonWith_Cpf() throws JsonProcessingException {
 		String json = "{\"cpf\": \"00000000000\"}";
 		UserDto dto = mapper.readValue(json, UserDto.class);
 		assertThat(dto).isNotNull()
@@ -31,7 +30,7 @@ class UserDtoUnitTests {
 	}
 	
 	@Test
-	void shouldConstructFromJsonWith_Email() throws JsonMappingException, JsonProcessingException {
+	void shouldConstructFromJsonWith_Email() throws JsonProcessingException {
 		String json = "{\"email\": \"email@server.com\"}";
 		UserDto dto = mapper.readValue(json, UserDto.class);
 		assertThat(dto).isNotNull()
@@ -40,7 +39,7 @@ class UserDtoUnitTests {
 	}
 	
 	@Test
-	void shouldConstructFromJsonWith_CpfAndEmail() throws JsonMappingException, JsonProcessingException {
+	void shouldConstructFromJsonWith_CpfAndEmail() throws JsonProcessingException {
 		String json = "{\"cpf\": \"00000000000\", \"email\": \"email@server.com\"}";
 		UserDto dto = mapper.readValue(json, UserDto.class);
 		assertThat(dto).isNotNull()
@@ -50,7 +49,7 @@ class UserDtoUnitTests {
 	}
 	
 	@Test
-	void shouldConstructFromJsonWith_IdAndCpfAndEmail() throws JsonMappingException, JsonProcessingException {
+	void shouldConstructFromJsonWith_IdAndCpfAndEmail() throws JsonProcessingException {
 		String json = "{\"id\": 1, \"cpf\": \"00000000000\", \"email\": \"email@server.com\"}";
 		UserDto dto = mapper.readValue(json, UserDto.class);
 		assertThat(dto).isNotNull()

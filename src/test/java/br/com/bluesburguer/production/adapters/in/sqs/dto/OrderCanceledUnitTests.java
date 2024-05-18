@@ -7,7 +7,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import br.com.bluesburguer.production.core.domain.Step;
@@ -32,7 +31,7 @@ class OrderCanceledUnitTests {
 
 	@ParameterizedTest
 	@EnumSource(Step.class)
-	void shouldConstructFromJson(Step step) throws JsonMappingException, JsonProcessingException {
+	void shouldConstructFromJson(Step step) throws JsonProcessingException {
 		String json = String.format("{\"orderId\":\"%s\", \"step\": \"%s\"}", ORDER_ID, step);
 		OrderCanceled order = mapper.readValue(json, OrderCanceled.class);
 		

@@ -1,6 +1,7 @@
 package br.com.bluesburguer.production.adapters.in.sqs.dto;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -27,7 +28,8 @@ public abstract class OrderEvent implements Serializable {
 	protected String orderId;
 	
 	@JsonCreator
-	protected OrderEvent(@NonNull @JsonProperty("orderId") String orderId) {
+	protected OrderEvent(@JsonProperty("orderId") String orderId) {
+		Objects.requireNonNull(orderId);
 		this.orderId = orderId;
 	}
 }

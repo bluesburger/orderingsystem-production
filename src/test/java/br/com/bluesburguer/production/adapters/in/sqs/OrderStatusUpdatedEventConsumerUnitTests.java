@@ -77,7 +77,7 @@ class OrderStatusUpdatedEventConsumerUnitTests {
 		}
 		
 		@Test
-		void shouldHandleOrderPaid_AndUnAckEventWhenOrderIsMalformed() throws JsonProcessingException {
+		void shouldHandleOrderPaid_AndUnAckEventWhenOrderIsMalformed() {
 			// given
 			OrderPaid order = null;
 			

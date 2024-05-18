@@ -5,7 +5,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 class OrderPaidUnitTests {
@@ -15,7 +14,7 @@ class OrderPaidUnitTests {
 	ObjectMapper mapper = new ObjectMapper();
 
 	@Test
-	void shouldConstructFromJson() throws JsonMappingException, JsonProcessingException {
+	void shouldConstructFromJson() throws JsonProcessingException {
 		String json = String.format("{\"orderId\":\"%s\"}", ORDER_ID);
 		OrderPaid orderPaid = mapper.readValue(json, OrderPaid.class);
 		

@@ -67,14 +67,6 @@ public class SQSConfig {
 	    return factory;
 	}
 	
-//	@Bean
-//	SimpleMessageListenerContainerFactory simpleMessageListenerContainerFactory(AmazonSQSAsync amazonSqs) {
-//	    SimpleMessageListenerContainerFactory factory = new SimpleMessageListenerContainerFactory();
-//	    factory.setWaitTimeOut(5);
-//	    factory.setAmazonSqs(amazonSqs);
-//	    return factory;
-//	}
-	
 	private List<HandlerMethodArgumentResolver> initArgumentResolvers() {
         MappingJackson2MessageConverter messageConverter = new MappingJackson2MessageConverter();
 
