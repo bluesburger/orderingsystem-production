@@ -7,9 +7,9 @@ WORKDIR /app
 COPY target/orderingsystem-production-0.0.1-SNAPSHOT.jar .
 COPY src/main/resources/*.properties .
 
-
+ENV PORT 8080
 # Expondo a porta que o aplicativo está ouvindo
-EXPOSE 8100
+EXPOSE 8080
 
 # Comando para iniciar o aplicativo
 ENTRYPOINT ["java", "-jar", "orderingsystem-production-0.0.1-SNAPSHOT.jar"]
