@@ -114,7 +114,7 @@ class OrderStatusUpdatedEventConsumerIntegrationTests extends SqsBaseIntegration
 			return queueOrderCanceled;
 		}
 		
-		return null;
+		return "";
 	}
 	
 	private static Stream<OrderEvent> generateOrders() {
