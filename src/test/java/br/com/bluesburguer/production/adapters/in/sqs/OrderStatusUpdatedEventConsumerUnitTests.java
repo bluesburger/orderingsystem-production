@@ -50,7 +50,7 @@ class OrderStatusUpdatedEventConsumerUnitTests {
 	@Nested
 	class Paid {
 		@Test
-		void shouldHandleOrderPaid_AndAckEventWhenOrderUpdatedWithSuccess() throws JsonProcessingException {
+		void shouldHandleOrderPaid_AndAckEventWhenOrderUpdatedWithSuccess() {
 			// given
 			when(orderPort.update(ORDER_ID, Step.KITCHEN, Fase.PENDING)).thenReturn(true);
 			var order = OrderPaid.builder().orderId(ORDER_ID).build();
@@ -63,7 +63,7 @@ class OrderStatusUpdatedEventConsumerUnitTests {
 		}
 		
 		@Test
-		void shouldHandleOrderPaid_AndUnAckEventWhenOrderNotUpdatedWithSuccess() throws JsonProcessingException {
+		void shouldHandleOrderPaid_AndUnAckEventWhenOrderNotUpdatedWithSuccess() {
 			// given
 			when(orderPort.update(ORDER_ID, Step.KITCHEN, Fase.PENDING)).thenReturn(false);
 			var order = OrderPaid.builder().orderId(ORDER_ID).build();
