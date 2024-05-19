@@ -14,4 +14,5 @@ Desinstalação
 - Rodar localmente o comando `make down`
 
 Covarage
+
 ![Coverage](https://i.imgur.com/fIHDSp9.png)
