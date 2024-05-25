@@ -7,6 +7,8 @@ import org.junit.jupiter.api.Test;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import br.com.bluesburguer.production.infra.adapters.user.dto.UserDto;
+
 class UserDtoUnitTests {
 	
 	ObjectMapper mapper = new ObjectMapper();

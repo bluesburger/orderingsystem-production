@@ -12,3 +12,7 @@ Instalação
 
 Desinstalação
 - Rodar localmente o comando `make down`
+
+## Próximos passos:
+
+- Incluir persistência de evento com Pedido, Data e Tipo

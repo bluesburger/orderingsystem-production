@@ -4,6 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 
+import br.com.bluesburguer.production.domain.entity.Step;
+
 class StepUnitTests {
 
 	@Test

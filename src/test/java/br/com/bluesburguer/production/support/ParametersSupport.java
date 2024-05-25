@@ -4,9 +4,11 @@ import java.util.stream.Stream;
 
 import org.junit.jupiter.params.provider.Arguments;
 
-import br.com.bluesburguer.production.core.domain.Fase;
-import br.com.bluesburguer.production.core.domain.Step;
+import br.com.bluesburguer.production.domain.entity.Fase;
+import br.com.bluesburguer.production.domain.entity.Step;
+import lombok.NoArgsConstructor;
 
+@NoArgsConstructor
 public final class ParametersSupport {
 
 	public static Stream<Arguments> provideStepAndFaseParameters() {

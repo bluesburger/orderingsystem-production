@@ -14,11 +14,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
-import br.com.bluesburguer.production.adapters.in.order.dto.OrderDto;
-import br.com.bluesburguer.production.adapters.in.order.dto.OrderItemDto;
-import br.com.bluesburguer.production.adapters.in.user.dto.UserDto;
-import br.com.bluesburguer.production.core.domain.Fase;
-import br.com.bluesburguer.production.core.domain.Step;
+import br.com.bluesburguer.production.domain.entity.Fase;
+import br.com.bluesburguer.production.domain.entity.Step;
+import br.com.bluesburguer.production.infra.adapters.order.OrderClient;
+import br.com.bluesburguer.production.infra.adapters.order.dto.OrderDto;
+import br.com.bluesburguer.production.infra.adapters.order.dto.OrderItemDto;
+import br.com.bluesburguer.production.infra.adapters.user.dto.UserDto;
 import br.com.bluesburguer.production.support.ApplicationIntegrationSupport;
 import br.com.bluesburguer.production.support.OrderMocks;
 
@@ -45,7 +46,8 @@ class OrderClientIntegrationTests extends ApplicationIntegrationSupport {
 		var items = List.of(new OrderItemDto(1L,  1));
 		var user = new UserDto(1L, OrderMocks.mockCpf(), OrderMocks.mockEmail());
 		var orderDto = new OrderDto(ORDER_ID, step, fase, items, user);
-		OrderMocks.mockOrderClientGetById(wme, orderDto);
+		
+		mockOrderClientGetById(wme, orderDto);
 
 		// when
 		var orderResponse = orderClient.getById(ORDER_ID);
@@ -62,7 +64,7 @@ class OrderClientIntegrationTests extends ApplicationIntegrationSupport {
 		var user = new UserDto(1L, OrderMocks.mockCpf(), OrderMocks.mockEmail());
 		var orderDto = new OrderDto(ORDER_ID, step, fase, items, user);
 		
-		OrderMocks.mockOrderClientUpdateStepAndFase(wme, orderDto);
+		mockOrderClientUpdateStepAndFase(wme, orderDto);
 		
 		// when
 		var orderResponse = orderClient.updateStepAndFase(orderDto.getId(), step, fase);

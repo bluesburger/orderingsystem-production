@@ -10,10 +10,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import br.com.bluesburguer.production.adapters.in.order.dto.OrderDto;
-import br.com.bluesburguer.production.adapters.out.order.OrderClient;
-import br.com.bluesburguer.production.core.domain.Fase;
-import br.com.bluesburguer.production.core.domain.Step;
+import br.com.bluesburguer.production.domain.entity.Fase;
+import br.com.bluesburguer.production.domain.entity.Step;
+import br.com.bluesburguer.production.domain.service.OrderService;
+import br.com.bluesburguer.production.infra.adapters.order.OrderClient;
+import br.com.bluesburguer.production.infra.adapters.order.dto.OrderDto;
 
 @ExtendWith(MockitoExtension.class)
 class OrderServiceUnitTests {

@@ -51,7 +51,11 @@ public abstract class SqsBaseIntegrationSupport extends ApplicationIntegrationSu
 			"d98c39f7-5118-43ba-afc9-027aa2809d53", 
 			"99eb38e9-f131-43c8-bfb3-daa3386acc65", 
 			"025ad62b-5216-4896-ae15-0449792aac6d", 
-			"55855949-9c22-4ae4-bfdf-bef1510b16cd"
+			"55855949-9c22-4ae4-bfdf-bef1510b16cd",
+			"dc9ffbcb-2152-4c7b-9b55-5397f87a069f",
+			"db2a26e7-d550-4c5e-ac11-ac7d20e90d80",
+			"cb0cab3e-2390-4df2-a8b8-c8b6b6c6c6a6",
+			"b4072b6f-625c-480f-b10e-50b105f89c1e"
 	);
 	
 	@DynamicPropertySource
@@ -62,41 +66,39 @@ public abstract class SqsBaseIntegrationSupport extends ApplicationIntegrationSu
 	    registry.add("cloud.aws.credentials.secret-key", localstackInDockerNetwork.getSecretKey()::toString);
 	    registry.add("cloud.aws.end-point.uri", localstackInDockerNetwork.getEndpointOverride(Service.SQS)::toString);
 	    
-	    registry.add("queue.order.paid", () -> TEST_QUEUES.get(0));
-	    registry.add("queue.order.in-production", () -> TEST_QUEUES.get(1));
-	    registry.add("queue.order.produced", () -> TEST_QUEUES.get(2));
-	    registry.add("queue.order.delivering", () -> TEST_QUEUES.get(3));
-	    registry.add("queue.order.delivered", () -> TEST_QUEUES.get(4));
-	    registry.add("queue.order.canceled", () -> TEST_QUEUES.get(5));
+	    registry.add("queue.order.registered", () -> TEST_QUEUES.get(0));
+	    registry.add("queue.order.confirmed", () -> TEST_QUEUES.get(1));
+	    registry.add("queue.order.canceled", () -> TEST_QUEUES.get(2));
+	    
+	    registry.add("queue.order.paid", () -> TEST_QUEUES.get(3));
+	    registry.add("queue.order.failed-on-payment", () -> TEST_QUEUES.get(4));
+	    registry.add("queue.order.scheduled", () -> TEST_QUEUES.get(5));
+	    
+	    registry.add("queue.order.failed-delivery", () -> TEST_QUEUES.get(6));
+	    registry.add("queue.order.performed-delivery", () -> TEST_QUEUES.get(7));
+	    registry.add("queue.order.invoice-issued", () -> TEST_QUEUES.get(8));
+	    registry.add("queue.order.invoice-failed-issued", () -> TEST_QUEUES.get(9));
 	}
 
 	@BeforeAll
 	static void beforeAll() throws IOException, InterruptedException {
-		TEST_QUEUES.forEach(queueName -> {
-			try {
-				log.info("Creating queue {}", queueName);
-				localstackInDockerNetwork.execInContainer(
-						"awslocal",
-						"sqs",
-						"create-queue",
-						"--queue-name",
-						queueName
-				);
-			} catch (UnsupportedOperationException | IOException | InterruptedException e) {
-				log.error("Falha ao tentar criar queue {}", queueName, e);
-			}
-		});
-		
-		try {
-			log.info("Listando queues");
+		for(String queueName : TEST_QUEUES) {
+			log.info("Creating queue {}", queueName);
 			localstackInDockerNetwork.execInContainer(
 					"awslocal",
 					"sqs",
-					"list-queues"
+					"create-queue",
+					"--queue-name",
+					queueName
 			);
-		} catch (UnsupportedOperationException | IOException | InterruptedException e) {
-			log.error("Falha ao tentar listar queues", e);
 		}
+		
+		log.info("Listando queues");
+		localstackInDockerNetwork.execInContainer(
+				"awslocal",
+				"sqs",
+				"list-queues"
+		);
 	}
 
 }
