@@ -16,3 +16,9 @@ Desinstalação
 ## Próximos passos:
 
 - Incluir persistência de evento com Pedido, Data e Tipo
+
+-----
+
+#### Referências
+
+- [github aws-doc-sdk-examples](https://github.com/awsdocs/aws-doc-sdk-examples/tree/main/java)

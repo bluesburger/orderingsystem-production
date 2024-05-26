@@ -65,6 +65,7 @@ public abstract class SqsBaseIntegrationSupport extends ApplicationIntegrationSu
 	    registry.add("cloud.aws.credentials.access-key", localstackInDockerNetwork.getAccessKey()::toString);
 	    registry.add("cloud.aws.credentials.secret-key", localstackInDockerNetwork.getSecretKey()::toString);
 	    registry.add("cloud.aws.end-point.uri", localstackInDockerNetwork.getEndpointOverride(Service.SQS)::toString);
+	    registry.add("cloud.aws.accountId", () -> "000000000000");
 	    
 	    registry.add("queue.order.registered", () -> TEST_QUEUES.get(0));
 	    registry.add("queue.order.confirmed", () -> TEST_QUEUES.get(1));
@@ -77,7 +78,7 @@ public abstract class SqsBaseIntegrationSupport extends ApplicationIntegrationSu
 	    registry.add("queue.order.failed-delivery", () -> TEST_QUEUES.get(6));
 	    registry.add("queue.order.performed-delivery", () -> TEST_QUEUES.get(7));
 	    registry.add("queue.order.invoice-issued", () -> TEST_QUEUES.get(8));
-	    registry.add("queue.order.invoice-failed-issued", () -> TEST_QUEUES.get(9));
+	    registry.add("queue.order.invoice-failed-issued", () -> TEST_QUEUES.get(9));	
 	}
 
 	@BeforeAll

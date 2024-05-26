@@ -54,37 +54,37 @@ class OrderOrchestratorIntegrationTests extends SqsBaseIntegrationSupport {
 	OrderPort orderPort;
 	
 	// Pedido
-	@Value("${queue.order.registered:order-registered.fifo}")
+	@Value("${queue.order.registered:order-registered}")
 	private String queueOrderRegistered;
 	
-	@Value("${queue.order.confirmed:order-confirmed.fifo}")
+	@Value("${queue.order.confirmed:order-confirmed}")
 	private String queueOrderConfirmed;
 	
-	@Value("${queue.order.canceled:order-canceled.fifo}")
+	@Value("${queue.order.canceled:order-canceled}")
 	private String queueOrderCanceled;
 	
 	// Cobrança
-	@Value("${queue.order.paid:order-paid.fifo}")
+	@Value("${queue.order.paid:order-paid}")
 	private String queueOrderPaid;
 	
-	@Value("${queue.order.failed-on-payment:order-failed-on-payment.fifo}")
+	@Value("${queue.order.failed-on-payment:order-failed-on-payment}")
 	private String queueOrderFailedOnPayment;
 	
 	// Entrega
-	@Value("${queue.order.scheduled:order-scheduled.fifo}")
+	@Value("${queue.order.scheduled:order-scheduled}")
 	private String queueOrderScheduled;
 	
-	@Value("${queue.order.failed-delivery:order-failed-delivery.fifo}")
+	@Value("${queue.order.failed-delivery:order-failed-delivery}")
 	private String queueOrderFailedOnSchedule;
 	
-	@Value("${queue.order.performed-delivery:order-performed-delivery.fifo}")
+	@Value("${queue.order.performed-delivery:order-performed-delivery}")
 	private String queueOrderScheduledPerformed;
 	
 	// Nota Fiscal
-	@Value("${queue.order.invoice-issued:order-invoice-issued.fifo}")
+	@Value("${queue.order.invoice-issued:order-invoice-issued}")
 	private String queueOrderInvoiceIssued;
 	
-	@Value("${queue.order.invoice-failed-issued:order-invoice-failed-issued.fifo}")
+	@Value("${queue.order.invoice-failed-issued:order-invoice-failed-issued}")
 	private String queueOrderInvoiceFailedIssued;
 	
 	@BeforeEach
