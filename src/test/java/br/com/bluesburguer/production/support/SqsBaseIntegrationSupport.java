@@ -17,7 +17,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
-import br.com.bluesburguer.production.configuration.SqsTestConfig;
+import br.com.bluesburguer.production.framework.SqsTestConfig;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
