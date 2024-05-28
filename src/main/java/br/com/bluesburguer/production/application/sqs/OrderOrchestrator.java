@@ -25,7 +25,6 @@ import br.com.bluesburguer.production.application.ports.OrderPort;
 import br.com.bluesburguer.production.domain.entity.Fase;
 import br.com.bluesburguer.production.domain.entity.Step;
 import br.com.bluesburguer.production.infra.database.EventDatabaseAdapter;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -35,7 +34,6 @@ import lombok.extern.slf4j.Slf4j;
 @ConditionalOnProperty(
         name = "cloud.aws.sqs.listener.auto-startup", havingValue = "true"
 )
-@Transactional
 public class OrderOrchestrator {
 	
 	private final OrderPort orderPort;
@@ -46,29 +44,27 @@ public class OrderOrchestrator {
     public void handle(@Payload PedidoRegistradoDto event, Acknowledgment ack) {
 		log.info("Event received on queue order-registered: {}", event);
 		
-		if (ObjectUtils.isNotEmpty(event) && update(event, Step.ORDER, Fase.REGISTERED)) {
-			eventDatabaseAdapter.save(event);
-    		ack.acknowledge();
-    	}
+		if (execute(event, Step.ORDER, Fase.REGISTERED)) {
+			ack.acknowledge();
+		}
     }
 	
 	@SqsListener(value = "${queue.order.confirmed:order-confirmed}", deletionPolicy = SqsMessageDeletionPolicy.NEVER)
     public void handle(@Payload PedidoConfirmadoDto event, Acknowledgment ack) {
 		log.info("Event received on queue order-confirmed: {}", event);
 		
-		if (ObjectUtils.isNotEmpty(event) && update(event, Step.ORDER, Fase.CONFIRMED)) {
-			eventDatabaseAdapter.save(event);
-    		ack.acknowledge();
-    	}
+		if (execute(event, Step.ORDER, Fase.CONFIRMED)) {
+			ack.acknowledge();
+		}
     }
 	
 	@SqsListener(value = "${queue.order.canceled:order-canceled}", deletionPolicy = SqsMessageDeletionPolicy.NEVER)
     public void handle(PedidoCanceladoDto event, Acknowledgment ack) throws JsonProcessingException {
 		log.info("Event received on queue order-canceled: {}", event);
-    	if (ObjectUtils.isNotEmpty(event) && update(event, Step.ORDER, Fase.CANCELED)) {
-    		eventDatabaseAdapter.save(event);
-    		ack.acknowledge();
-    	}
+		
+		if (execute(event, Step.ORDER, Fase.CANCELED)) {
+			ack.acknowledge();
+		}
     }
 
 	// Cobranca
@@ -76,20 +72,18 @@ public class OrderOrchestrator {
     public void handle(@Payload CobrancaRealizadaDto event, Acknowledgment ack) {
 		log.info("Event received on queue order-paid: {}", event);
 		
-		if (ObjectUtils.isNotEmpty(event) && update(event, Step.CHARGE, Fase.CONFIRMED)) {
-			eventDatabaseAdapter.save(event);
-    		ack.acknowledge();
-    	}
+		if (execute(event, Step.CHARGE, Fase.CONFIRMED)) {
+			ack.acknowledge();
+		}
     }
 	
 	@SqsListener(value = "${queue.order.failed-on-payment:order-failed-on-payment}", deletionPolicy = SqsMessageDeletionPolicy.NEVER)
     public void handle(@Payload CobrancaFalhouDto event, Acknowledgment ack) {
 		log.info("Event received on queue order-failed-paid: {}", event);
 		
-		if (ObjectUtils.isNotEmpty(event) && update(event, Step.CHARGE, Fase.FAILED)) {
-			eventDatabaseAdapter.save(event);
-    		ack.acknowledge();
-    	}
+		if (execute(event, Step.CHARGE, Fase.FAILED)) {
+			ack.acknowledge();
+		}
     }
 	
 	// Entrega
@@ -97,28 +91,25 @@ public class OrderOrchestrator {
     public void handle(@Payload EntregaAgendadaDto event, Acknowledgment ack) {
 		log.info("Event received on queue order-scheduled: {}", event);
 		
-		if (ObjectUtils.isNotEmpty(event) && update(event, Step.DELIVERY, Fase.REGISTERED)) {
-			eventDatabaseAdapter.save(event);
-    		ack.acknowledge();
-    	}
+		if (execute(event, Step.DELIVERY, Fase.REGISTERED)) {
+			ack.acknowledge();
+		}
     }
 	
 	@SqsListener(value = "${queue.order.failed-delivery:order-failed-delivery}", deletionPolicy = SqsMessageDeletionPolicy.NEVER)
     public void handle(@Payload EntregaFalhouDto event, Acknowledgment ack) {
 		log.info("Event received on queue order-failed-delivery: {}", event);
 		
-		if (ObjectUtils.isNotEmpty(event) && update(event, Step.DELIVERY, Fase.FAILED)) {
-			eventDatabaseAdapter.save(event);
-    		ack.acknowledge();
-    	}
+		if (execute(event, Step.DELIVERY, Fase.FAILED)) {
+			ack.acknowledge();
+		}
     }
 	
 	@SqsListener(value = "${queue.order.performed-delivery:order-performed-delivery}", deletionPolicy = SqsMessageDeletionPolicy.NEVER)
 	public void handle(@Payload EntregaEfetuadaDto event, Acknowledgment ack) {
 		log.info("Event received on queue order-performed-delivery: {}", event);
 		
-		if (ObjectUtils.isNotEmpty(event) && update(event, Step.DELIVERY, Fase.CONFIRMED)) {
-			eventDatabaseAdapter.save(event);
+		if (execute(event, Step.DELIVERY, Fase.CONFIRMED)) {
 			ack.acknowledge();
 		}
 	}
@@ -128,25 +119,44 @@ public class OrderOrchestrator {
     public void handle(@Payload NotaFiscalEmitidaDto event, Acknowledgment ack) {
 		log.info("Event received on queue order-invoice-issued: {}", event);
 		
-		if (ObjectUtils.isNotEmpty(event) && update(event, Step.INVOICE, Fase.CONFIRMED)) {
-			eventDatabaseAdapter.save(event);
-    		ack.acknowledge();
-    	}
+		if (execute(event, Step.INVOICE, Fase.CONFIRMED)) {
+			ack.acknowledge();
+		}
     }
 	
 	@SqsListener(value = "${queue.order.invoice-failed-issued:order-invoice-failed-issued}", deletionPolicy = SqsMessageDeletionPolicy.NEVER)
     public void handle(@Payload NotaFiscalFalhouNaEmissaoDto event, Acknowledgment ack) {
 		log.info("Event received on queue order-invoice-failed-issued: {}", event);
 		
-		if (ObjectUtils.isNotEmpty(event) && update(event, Step.INVOICE, Fase.FAILED)) {
-			eventDatabaseAdapter.save(event);
-    		ack.acknowledge();
-    	}
+		if (execute(event, Step.INVOICE, Fase.FAILED)) {
+			ack.acknowledge();
+		}
     }
 	
+	private boolean execute(OrderEventDto event, Step step, Fase fase) {
+		try {
+			if (ObjectUtils.isNotEmpty(event) && update(event, step, fase)) {
+				eventDatabaseAdapter.save(event);
+				return true;
+	    	}
+		} catch(Exception e) {
+			update(event, step, Fase.FAILED);
+			log.error("An error occurred", e);
+		}
+		return false;
+	}
+	
 	private boolean update(OrderEventDto order, Step step, Fase fase) {
+		return update(order, step, fase, false);
+	}
+	
+	private boolean update(OrderEventDto order, Step step, Fase fase, boolean rollback) {
 		if (orderPort.update(order.getOrderId(), step, fase)) {
-    		log.info("Order status updated to step {} and fase {}", step, fase);
+			if (rollback) {
+				log.warn("Order status {} rolled back to step {} and fase {}", order.getOrderId(), step, fase);
+			} else {
+				log.info("Order status {} updated to step {} and fase {}", order.getOrderId(), step, fase);
+			}
     		return true;
     	}
 		return false;

@@ -31,4 +31,6 @@ public abstract class OrderEventDto implements Serializable {
 		Objects.requireNonNull(orderId);
 		this.orderId = orderId;
 	}
+	
+	public abstract String getEventName();
 }

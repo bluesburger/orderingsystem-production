@@ -118,6 +118,11 @@ class OrderOrchestratorIntegrationTests extends SqsBaseIntegrationSupport {
 	
 	class UnrecognizedDto extends OrderEventDto {
 		private static final long serialVersionUID = -2879485837938440488L;
+
+		@Override
+		public String getEventName() {
+			return "UNRECOGNIZED_EVENT";
+		}
 	}
 	
 	@Test

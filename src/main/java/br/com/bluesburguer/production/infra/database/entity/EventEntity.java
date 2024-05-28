@@ -27,7 +27,7 @@ import lombok.ToString;
 @NoArgsConstructor
 @RequiredArgsConstructor
 @AllArgsConstructor
-@Table(schema = "bluesburguer-order", name = "TB_EVENT")
+@Table(schema = "bluesburguer-production", name = "TB_EVENT")
 @Builder
 public class EventEntity implements Serializable {
 
@@ -35,7 +35,7 @@ public class EventEntity implements Serializable {
 
 	@Id
 	@Setter
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "ID")
     private Long id;
 	

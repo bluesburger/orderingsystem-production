@@ -17,6 +17,8 @@ import lombok.experimental.SuperBuilder;
 @ToString(callSuper = true)
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class PedidoCanceladoDto extends OrderEventDto {
+	
+	public static final String EVENT_NAME = "PEDIDO_CANCELADO";
 
 	private static final long serialVersionUID = 7702500048926979660L;
 
@@ -27,5 +29,10 @@ public class PedidoCanceladoDto extends OrderEventDto {
 	public PedidoCanceladoDto(@JsonProperty("orderId") String orderId, @JsonProperty("step") Step step) {
 		super(orderId);
 		this.step = step;
+	}
+	
+	@Override
+	public String getEventName() {
+		return EVENT_NAME;
 	}
 }
