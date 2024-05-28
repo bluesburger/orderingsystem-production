@@ -46,16 +46,16 @@ public abstract class SqsBaseIntegrationSupport extends ApplicationIntegrationSu
 	static final String BUCKET_NAME = UUID.randomUUID().toString();
 	
 	protected static List<String> TEST_QUEUES = List.of(
-			"d29e1ed0-fc99-48d9-81da-6c092651e5e0", 
-			"48905674-4e2e-4503-a49d-15c7306f0fe1", 
-			"d98c39f7-5118-43ba-afc9-027aa2809d53", 
-			"99eb38e9-f131-43c8-bfb3-daa3386acc65", 
-			"025ad62b-5216-4896-ae15-0449792aac6d", 
-			"55855949-9c22-4ae4-bfdf-bef1510b16cd",
-			"dc9ffbcb-2152-4c7b-9b55-5397f87a069f",
-			"db2a26e7-d550-4c5e-ac11-ac7d20e90d80",
-			"cb0cab3e-2390-4df2-a8b8-c8b6b6c6c6a6",
-			"b4072b6f-625c-480f-b10e-50b105f89c1e"
+			"d29e1ed0-fc99-48d9-81da-6c092651e5e0.fifo", 
+			"48905674-4e2e-4503-a49d-15c7306f0fe1.fifo", 
+			"d98c39f7-5118-43ba-afc9-027aa2809d53.fifo", 
+			"99eb38e9-f131-43c8-bfb3-daa3386acc65.fifo", 
+			"025ad62b-5216-4896-ae15-0449792aac6d.fifo", 
+			"55855949-9c22-4ae4-bfdf-bef1510b16cd.fifo",
+			"dc9ffbcb-2152-4c7b-9b55-5397f87a069f.fifo",
+			"db2a26e7-d550-4c5e-ac11-ac7d20e90d80.fifo",
+			"cb0cab3e-2390-4df2-a8b8-c8b6b6c6c6a6.fifo",
+			"b4072b6f-625c-480f-b10e-50b105f89c1e.fifo"
 	);
 	
 	@DynamicPropertySource
@@ -90,7 +90,9 @@ public abstract class SqsBaseIntegrationSupport extends ApplicationIntegrationSu
 					"sqs",
 					"create-queue",
 					"--queue-name",
-					queueName
+					queueName,
+					"--attributes",
+					"FifoQueue=true"
 			);
 		}
 		

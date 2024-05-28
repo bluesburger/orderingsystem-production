@@ -1,6 +1,8 @@
 package br.com.bluesburguer.production.infra.sqs;
 
+import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,36 +24,57 @@ public abstract class OrderEventPublisherImpl<T extends OrderEventDto> implement
 	
 	private final String queueName;
 	
+	@Autowired
+    private AmazonSQS amazonSQS;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+	
 	@Value("${cloud.aws.end-point.uri}")
     private String queueHost;
 	
 	@Value("${cloud.aws.accountId}")
     private String accountId;
 
-	@Autowired
-    private AmazonSQS amazonSQS;
-
-    @Autowired
-    private ObjectMapper objectMapper;
-
     @Override
     public Optional<String> publish(T event) {
-    	var fullQueueUrl = buildQueueUrl();
-    	log.info("Publishing event {} in SQS queue {}", event, fullQueueUrl);
     	
         try {
-        	SendMessageRequest sendMessageRequest = new SendMessageRequest()
-            		.withQueueUrl(fullQueueUrl)
-                    .withMessageBody(objectMapper.writeValueAsString(event));
-            var result = amazonSQS.sendMessage(sendMessageRequest);
-            var messageId = result.getMessageId();
-            return Optional.ofNullable(messageId);
+        	var request = createRequest(event);
+        	log.info("Publishing event {} in SQS queue {}", event, request.getQueueUrl());
+            var result = amazonSQS.sendMessage(request);
+            return Optional.ofNullable(result.getMessageId());
         } catch (JsonProcessingException e) {
         	log.error("JsonProcessingException e : {} and stacktrace : {}", e.getMessage(), e);
         } catch (Exception e) {
         	log.error("Exception ocurred while pushing event to sqs : {} and stacktrace ; {}", e.getMessage(), e);
         }
         return Optional.empty();
+    }
+    
+    private SendMessageRequest createRequest(T event) throws JsonProcessingException {
+    	if (Objects.nonNull(queueName) && queueName.toLowerCase().endsWith(".fifo")) {
+	    	log.info("Defining fifo request... {}", queueName);
+    		return fifoRequest(event);
+    	}
+    	log.info("Defining default request... {}", queueName);
+    	return defaultRequest(event);
+    }
+    
+    private SendMessageRequest defaultRequest(T event) throws JsonProcessingException {
+    	return defaultRequest(objectMapper.writeValueAsString(event));
+    }
+    
+    private SendMessageRequest defaultRequest(String messageBody) {
+    	return new SendMessageRequest()
+        		.withQueueUrl(buildQueueUrl())
+                .withMessageBody(messageBody);
+    }
+    
+    private SendMessageRequest fifoRequest(T event) throws JsonProcessingException {
+		return defaultRequest(event)
+    		.withMessageGroupId(event.getOrderId())
+    		.withMessageDeduplicationId(UUID.randomUUID().toString());
     }
     
     private String buildQueueUrl() {

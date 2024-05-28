@@ -7,6 +7,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import org.assertj.core.api.Condition;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -39,7 +40,7 @@ import lombok.extern.slf4j.Slf4j;
 @ExtendWith(SpringExtension.class)
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 @TestMethodOrder(OrderAnnotation.class)
-class SagaEventPublisherImplIntegrationTests extends SqsBaseIntegrationSupport {
+class SagaIntegrationTests extends SqsBaseIntegrationSupport {
 	
 	private final OrderClient orderClient;
 	private final EventDatabaseAdapter eventAdapter;
@@ -56,7 +57,8 @@ class SagaEventPublisherImplIntegrationTests extends SqsBaseIntegrationSupport {
 	
 	@Test
 	@Order(1)
-	void givenPedidoCriado_WhenPublishEventPedidoRegistrado_ThenFaseShouldBeUpdatedToRegistered() throws InterruptedException {
+	@DisplayName("Dado um novo pedido criado, quando publicar evento de pedido registrado, então deve atualizar step para ORDER e fase para REGISTERED")
+	void givenNovoPedido_WhenPublishEventPedidoRegistrado_ThenOrderShouldBeUpdatedToStepOrderAndFaseRegistered() throws InterruptedException {
 		ORDER_ID = createNewOrder();
 
 		var event = new PedidoRegistradoDto(ORDER_ID);
@@ -75,7 +77,8 @@ class SagaEventPublisherImplIntegrationTests extends SqsBaseIntegrationSupport {
 	
 	@Test
 	@Order(2)
-	void givenReservaRealizada_WhenPublishEventCobrancaRealizada_ThenFaseShouldBeUpdatedToRegistered() throws InterruptedException {
+	@DisplayName("Dado um pedido registrado, quando publicar evento de cobrança realizada, então deve atualizar step para CHARGE e fase para CONFIRMED")
+	void givenReservaRealizada_WhenPublishEventCobrancaRealizada_ThenOrderShouldBeUpdatedToStepChargeAndFaseConfirmed() throws InterruptedException {
 		var event = new CobrancaRealizadaDto(ORDER_ID);
 		assertThat(cobrancaRealizadaEventPublisher.publish(event))
 			.isPresent();
@@ -91,7 +94,8 @@ class SagaEventPublisherImplIntegrationTests extends SqsBaseIntegrationSupport {
 	
 	@Test
 	@Order(3)
-	void givenCobrancaRealizada_WhenPublishEventEntregaAgendada_ThenFaseShouldBeUpdatedToRegistered() throws InterruptedException {
+	@DisplayName("Dado um pedido com cobrança realizada, quando publicar evento de entrega agendada, então deve atualizar step para DELIVERY e fase para REGISTERED")
+	void givenCobrancaRealizada_WhenPublishEventEntregaAgendada_ThenOrderShouldBeUpdatedToStepDeliveryAndFaseRegistered() throws InterruptedException {
 		var event = new EntregaAgendadaDto(ORDER_ID);
 		assertThat(entregaAgendadaEventPublisher.publish(event))
 			.isPresent();
@@ -108,7 +112,8 @@ class SagaEventPublisherImplIntegrationTests extends SqsBaseIntegrationSupport {
 	
 	@Test
 	@Order(4)
-	void givenEntregaAgendada_WhenPublishEventNotaFiscalEmitidaDto_ThenFaseShouldBeUpdatedToRegistered() throws InterruptedException {
+	@DisplayName("Dado um pedido com entrega agendada, quando publicar evento de nota fiscal emitida, então deve atualizar step para INVOICE e fase para CONFIRMED")
+	void givenEntregaAgendada_WhenPublishEventNotaFiscalEmitidaDto_ThenOrderShouldBeUpdatedToStepInvoiceAndFaseConfirmed() throws InterruptedException {
 		var event = new NotaFiscalEmitidaDto(ORDER_ID);
 		assertThat(notaFiscalEmitidaEventPublisher.publish(event))
 			.isPresent();
@@ -126,6 +131,7 @@ class SagaEventPublisherImplIntegrationTests extends SqsBaseIntegrationSupport {
 	
 	@Test
 	@Order(5)
+	@DisplayName("Dado um pedido com nota fiscal emitida, quando publicar evento de pedido confirmado, então deve atualizar step para ORDER e fase para CONFIRMED")
 	void givenNotaFiscalEmitida_WhenPublishEventPedidoConfirmado_ThenFaseShouldBeUpdatedToRegistered() throws InterruptedException {
 		var event = new PedidoConfirmadoDto(ORDER_ID);
 		assertThat(pedidoConfirmadoEventPublisher.publish(event))
