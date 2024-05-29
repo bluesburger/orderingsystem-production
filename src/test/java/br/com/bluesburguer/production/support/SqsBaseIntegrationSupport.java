@@ -55,7 +55,11 @@ public abstract class SqsBaseIntegrationSupport extends ApplicationIntegrationSu
 			"dc9ffbcb-2152-4c7b-9b55-5397f87a069f.fifo",
 			"db2a26e7-d550-4c5e-ac11-ac7d20e90d80.fifo",
 			"cb0cab3e-2390-4df2-a8b8-c8b6b6c6c6a6.fifo",
-			"b4072b6f-625c-480f-b10e-50b105f89c1e.fifo"
+			"b4072b6f-625c-480f-b10e-50b105f89c1e.fifo",
+			"da33790f-8a8c-4fcd-9c99-0e432779ecba.fifo",
+			"8c519ad1-b7ff-4906-83bf-8d91bb843544.fifo",
+			"66287c0d-23c2-4b24-bd2f-24901ff7e9b0.fifo",
+			"7c38af72-7ced-4a21-9155-140031f5fddf.fifo"
 	);
 	
 	@DynamicPropertySource
@@ -70,15 +74,18 @@ public abstract class SqsBaseIntegrationSupport extends ApplicationIntegrationSu
 	    registry.add("queue.order.registered", () -> TEST_QUEUES.get(0));
 	    registry.add("queue.order.confirmed", () -> TEST_QUEUES.get(1));
 	    registry.add("queue.order.canceled", () -> TEST_QUEUES.get(2));
-	    
 	    registry.add("queue.order.paid", () -> TEST_QUEUES.get(3));
 	    registry.add("queue.order.failed-on-payment", () -> TEST_QUEUES.get(4));
 	    registry.add("queue.order.scheduled", () -> TEST_QUEUES.get(5));
-	    
 	    registry.add("queue.order.failed-delivery", () -> TEST_QUEUES.get(6));
 	    registry.add("queue.order.performed-delivery", () -> TEST_QUEUES.get(7));
 	    registry.add("queue.order.invoice-issued", () -> TEST_QUEUES.get(8));
-	    registry.add("queue.order.invoice-failed-issued", () -> TEST_QUEUES.get(9));	
+	    registry.add("queue.order.invoice-failed-issued", () -> TEST_QUEUES.get(9));
+	    
+	    registry.add("queue.order-stock-command", () -> TEST_QUEUES.get(10));
+	    registry.add("queue.invoice-command", () -> TEST_QUEUES.get(11));
+	    registry.add("queue.perform-billing-command", () -> TEST_QUEUES.get(12));
+	    registry.add("queue.schedule-order-command", () -> TEST_QUEUES.get(13));
 	}
 
 	@BeforeAll

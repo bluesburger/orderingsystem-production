@@ -35,11 +35,13 @@ Desinstalação
 - OrderOrderedEvent
 - BillPerformedEvent
 - InvoiceIssuedEvent
+- OrderScheduledEvent
 
 **Comandos**:
 - OrderStockCommand
 - PerformBillingCommand
 - IssueInvoiceCommand
+- ScheduleOrderCommand
 
 ---
 
@@ -52,8 +54,10 @@ _Publica_:
 **StockService**:
 _Consome_:
 	- OrderStockCommand
+	- ScheduleOrderCommand
 _Publica_:
 	- OrderOrderedEvent
+	- OrderScheduledEvent
 	- OrderStockFailedCommand
 
 **PaymentService**:
@@ -76,11 +80,13 @@ _Consome_:
 	- OrderOrderedEvent
 	- BillPerformedEvent
 	- InvoiceIssuedEvent
+	- OrderScheduledEvent
 	
 _Publica_:
 	- OrderStockCommand
 	- PerformBillingCommand
 	- IssueInvoiceCommand
+	- ScheduleOrderCommand
 
 ---
 	

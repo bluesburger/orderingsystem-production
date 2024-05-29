@@ -26,18 +26,14 @@ import com.amazonaws.services.sqs.model.SendMessageRequest;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import br.com.bluesburguer.production.application.dto.OrderEventDto;
-import br.com.bluesburguer.production.application.dto.cobranca.CobrancaFalhouDto;
-import br.com.bluesburguer.production.application.dto.cobranca.CobrancaRealizadaDto;
-import br.com.bluesburguer.production.application.dto.entrega.EntregaAgendadaDto;
-import br.com.bluesburguer.production.application.dto.entrega.EntregaEfetuadaDto;
-import br.com.bluesburguer.production.application.dto.entrega.EntregaFalhouDto;
-import br.com.bluesburguer.production.application.dto.notafiscal.NotaFiscalEmitidaDto;
-import br.com.bluesburguer.production.application.dto.notafiscal.NotaFiscalFalhouNaEmissaoDto;
-import br.com.bluesburguer.production.application.dto.pedido.PedidoCanceladoDto;
-import br.com.bluesburguer.production.application.dto.pedido.PedidoConfirmadoDto;
-import br.com.bluesburguer.production.application.dto.pedido.PedidoRegistradoDto;
 import br.com.bluesburguer.production.application.ports.OrderPort;
+import br.com.bluesburguer.production.application.sqs.events.BillPerformedEvent;
+import br.com.bluesburguer.production.application.sqs.events.InvoiceIssueEvent;
+import br.com.bluesburguer.production.application.sqs.events.OrderCreatedEvent;
+import br.com.bluesburguer.production.application.sqs.events.OrderEvent;
+import br.com.bluesburguer.production.application.sqs.events.OrderOrderedEvent;
+import br.com.bluesburguer.production.application.sqs.events.OrderScheduledEvent;
+import br.com.bluesburguer.production.application.sqs.events.PerformBillingFailedEvent;
 import br.com.bluesburguer.production.domain.entity.Fase;
 import br.com.bluesburguer.production.domain.entity.Step;
 import br.com.bluesburguer.production.support.SqsBaseIntegrationSupport;
@@ -54,38 +50,23 @@ class OrderOrchestratorIntegrationTests extends SqsBaseIntegrationSupport {
 	OrderPort orderPort;
 	
 	// Pedido
-	@Value("${queue.order.registered:order-registered}")
-	private String queueOrderRegistered;
+	@Value("${queue.order.created-event:order-created-event}")
+	private String queueOrderCreatedEvent;
 	
-	@Value("${queue.order.confirmed:order-confirmed}")
-	private String queueOrderConfirmed;
+	@Value("${queue.order.ordered-event:order-ordered-event}")
+	private String queueOrderOrderedEvent;
 	
-	@Value("${queue.order.canceled:order-canceled}")
-	private String queueOrderCanceled;
+	@Value("${queue.bill.performed-event:bill-performed-event}")
+	private String queueBillPerformedEvent;
 	
-	// Cobrança
-	@Value("${queue.order.paid:order-paid}")
-	private String queueOrderPaid;
-	
-	@Value("${queue.order.failed-on-payment:order-failed-on-payment}")
-	private String queueOrderFailedOnPayment;
+	@Value("${queue.invoice-issued-event:invoice-issued-event}")
+	private String queueInvoiceIssueEvent;
 	
 	// Entrega
-	@Value("${queue.order.scheduled:order-scheduled}")
-	private String queueOrderScheduled;
+	@Value("${queue.order.scheduled-event:order-scheduled-event}")
+	private String queueOrderScheduledEvent;
 	
-	@Value("${queue.order.failed-delivery:order-failed-delivery}")
-	private String queueOrderFailedOnSchedule;
-	
-	@Value("${queue.order.performed-delivery:order-performed-delivery}")
-	private String queueOrderScheduledPerformed;
-	
-	// Nota Fiscal
-	@Value("${queue.order.invoice-issued:order-invoice-issued}")
-	private String queueOrderInvoiceIssued;
-	
-	@Value("${queue.order.invoice-failed-issued:order-invoice-failed-issued}")
-	private String queueOrderInvoiceFailedIssued;
+	/// Eventos compensatórios
 	
 	@BeforeEach
 	void setUp() {
@@ -96,11 +77,11 @@ class OrderOrchestratorIntegrationTests extends SqsBaseIntegrationSupport {
 	
 	@ParameterizedTest
 	@MethodSource("generateOrders")
-	void shouldSendOrderEvent_Consume_AndUpdateStatusSuccessfully(OrderEventDto orderEvent) throws JsonProcessingException {
+	void shouldSendOrderEvent_Consume_AndUpdateStatusSuccessfully(OrderEvent orderEvent) throws JsonProcessingException {
 		sendToQueue(orderEvent);
 	}
 	
-	void sendToQueue(OrderEventDto orderEvent) throws JsonProcessingException {
+	void sendToQueue(OrderEvent orderEvent) throws JsonProcessingException {
 		// given
 		var queueUrl = SQS.getQueueUrl(defineQueueUrl(orderEvent)).getQueueUrl();
 		
@@ -116,7 +97,7 @@ class OrderOrchestratorIntegrationTests extends SqsBaseIntegrationSupport {
         });
 	}
 	
-	class UnrecognizedDto extends OrderEventDto {
+	class UnrecognizedDto extends OrderEvent {
 		private static final long serialVersionUID = -2879485837938440488L;
 
 		@Override
@@ -131,70 +112,41 @@ class OrderOrchestratorIntegrationTests extends SqsBaseIntegrationSupport {
 		assertThrows(QueueDoesNotExistException.class, () -> defineQueueUrl(unrecognizedDto), "Queue not covered by integration tests");
 	}
 	
-	public String defineQueueUrl(OrderEventDto orderEvent) {
+	public String defineQueueUrl(OrderEvent orderEvent) {
 		// Pedido
-		if (orderEvent instanceof PedidoRegistradoDto) {
-			return queueOrderRegistered;
+		if (orderEvent instanceof OrderCreatedEvent) {
+			return queueOrderCreatedEvent;
 		}
 		
-		if (orderEvent instanceof PedidoConfirmadoDto) {
-			return queueOrderRegistered;
+		if (orderEvent instanceof OrderOrderedEvent) {
+			return queueOrderOrderedEvent;
 		}
 		
-		if (orderEvent instanceof PedidoCanceladoDto) {
-			return queueOrderCanceled;
+		if (orderEvent instanceof BillPerformedEvent) {
+			return queueBillPerformedEvent;
 		}
 		
-		// Cobrança
-		if (orderEvent instanceof CobrancaRealizadaDto) {
-			return queueOrderPaid;
+		if (orderEvent instanceof InvoiceIssueEvent) {
+			return queueInvoiceIssueEvent;
 		}
 		
-		if (orderEvent instanceof CobrancaFalhouDto) {
-			return queueOrderFailedOnPayment;
-		}
-		
-		// Entrega
-		if (orderEvent instanceof EntregaAgendadaDto) {
-			return queueOrderScheduled;
-		}
-		
-		if (orderEvent instanceof EntregaFalhouDto) {
-			return queueOrderFailedOnSchedule;
-		}
-		
-		if (orderEvent instanceof EntregaEfetuadaDto) {
-			return queueOrderScheduledPerformed;
-		}
-		
-		// Nota Fiscal
-		if (orderEvent instanceof NotaFiscalEmitidaDto) {
-			return queueOrderInvoiceIssued;
-		}
-		
-		if (orderEvent instanceof NotaFiscalFalhouNaEmissaoDto) {
-			return queueOrderInvoiceFailedIssued;
+		if (orderEvent instanceof OrderScheduledEvent) {
+			return queueOrderScheduledEvent;
 		}
 		
 		throw new QueueDoesNotExistException("Queue not covered by integration tests");
 	}
 	
-	private static Stream<OrderEventDto> generateOrders() {
+	private static Stream<OrderEvent> generateOrders() {
 		String orderId = "556f2b18-bda4-4d05-934f-7c0063d78f48";
 		return Stream.of(
-				PedidoRegistradoDto.builder(), 
-				PedidoConfirmadoDto.builder(),
-				PedidoCanceladoDto.builder().step(Step.KITCHEN),
-				
-				CobrancaRealizadaDto.builder(),
-				CobrancaFalhouDto.builder(),
-				
-				EntregaAgendadaDto.builder(),
-				EntregaFalhouDto.builder(),
-				EntregaEfetuadaDto.builder(),
-				
-				NotaFiscalEmitidaDto.builder(),
-				NotaFiscalFalhouNaEmissaoDto.builder()
+				OrderCreatedEvent.builder(), 
+				OrderOrderedEvent.builder(),
+				BillPerformedEvent.builder(),
+				PerformBillingFailedEvent.builder(),
+				InvoiceIssueEvent.builder(),
+				OrderScheduledEvent.builder()
+				// TODO: incluir eventos compensatórios
 			).map(b -> b.orderId(orderId).build());
 	}
 	

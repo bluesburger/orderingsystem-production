@@ -1,6 +1,8 @@
 package br.com.bluesburguer.production.infra.sqs;
 
+import static java.util.List.of;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -14,13 +16,21 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import br.com.bluesburguer.production.application.dto.cobranca.CobrancaRealizadaDto;
-import br.com.bluesburguer.production.application.dto.entrega.EntregaAgendadaDto;
-import br.com.bluesburguer.production.application.dto.notafiscal.NotaFiscalEmitidaDto;
-import br.com.bluesburguer.production.application.dto.pedido.PedidoConfirmadoDto;
-import br.com.bluesburguer.production.application.dto.pedido.PedidoRegistradoDto;
+import com.amazonaws.services.sqs.AmazonSQS;
+import com.amazonaws.services.sqs.model.GetQueueAttributesResult;
+
+import br.com.bluesburguer.production.application.sqs.commands.IssueInvoiceCommand;
+import br.com.bluesburguer.production.application.sqs.commands.OrderStockCommand;
+import br.com.bluesburguer.production.application.sqs.commands.PerformBillingCommand;
+import br.com.bluesburguer.production.application.sqs.commands.ScheduleOrderCommand;
+import br.com.bluesburguer.production.application.sqs.events.BillPerformedEvent;
+import br.com.bluesburguer.production.application.sqs.events.InvoiceIssueEvent;
+import br.com.bluesburguer.production.application.sqs.events.OrderCreatedEvent;
+import br.com.bluesburguer.production.application.sqs.events.OrderOrderedEvent;
+import br.com.bluesburguer.production.application.sqs.events.OrderScheduledEvent;
 import br.com.bluesburguer.production.domain.entity.Cpf;
 import br.com.bluesburguer.production.domain.entity.Email;
 import br.com.bluesburguer.production.domain.entity.Fase;
@@ -31,6 +41,8 @@ import br.com.bluesburguer.production.infra.adapters.order.dto.OrderRequest;
 import br.com.bluesburguer.production.infra.adapters.order.dto.UserRequest;
 import br.com.bluesburguer.production.infra.database.EventDatabaseAdapter;
 import br.com.bluesburguer.production.infra.database.entity.EventEntity;
+import br.com.bluesburguer.production.infra.sqs.commands.IOrderCommandPublisher;
+import br.com.bluesburguer.production.infra.sqs.events.IOrderEventPublisher;
 import br.com.bluesburguer.production.support.OrderMocks;
 import br.com.bluesburguer.production.support.SqsBaseIntegrationSupport;
 import lombok.RequiredArgsConstructor;
@@ -42,80 +54,170 @@ import lombok.extern.slf4j.Slf4j;
 @TestMethodOrder(OrderAnnotation.class)
 class SagaIntegrationTests extends SqsBaseIntegrationSupport {
 	
+	private final AmazonSQS sqs;
+	
+	private final SqsQueueSupport sqsQueueSupport;
+	
 	private final OrderClient orderClient;
 	private final EventDatabaseAdapter eventAdapter;
 	
-	private final OrderEventPublisher<PedidoRegistradoDto> pedidoRegistradoEventPublisher;
-	private final OrderEventPublisher<CobrancaRealizadaDto> cobrancaRealizadaEventPublisher;
-	private final OrderEventPublisher<EntregaAgendadaDto> entregaAgendadaEventPublisher;
-	private final OrderEventPublisher<NotaFiscalEmitidaDto> notaFiscalEmitidaEventPublisher;
-	private final OrderEventPublisher<PedidoConfirmadoDto> pedidoConfirmadoEventPublisher;
+	private final IOrderEventPublisher<OrderCreatedEvent> orderCreatedEventPublisher;
+	private final IOrderCommandPublisher<OrderStockCommand> orderStockCommandPublisher;
+	private final IOrderEventPublisher<OrderOrderedEvent> orderOrderedEventPublisher;
+	private final IOrderCommandPublisher<PerformBillingCommand> performBillingCommandPublisher;
+	private final IOrderEventPublisher<BillPerformedEvent> billPerformedEventPublisher;
+	private final IOrderCommandPublisher<IssueInvoiceCommand> issueInvoiceCommandPublisher;
+	private final IOrderEventPublisher<InvoiceIssueEvent> invoiceIssueEventPublisher;
+	private final IOrderCommandPublisher<ScheduleOrderCommand> scheduleOrderCommandPublisher;
+	private final IOrderEventPublisher<OrderScheduledEvent> orderScheduledEventPublisher;
 	
 	private final CountDownLatch lock = new CountDownLatch(1);
 	
 	private static String ORDER_ID;
 	
+	@Value("${queue.order-stock-command}")
+	private String queueOrderStockCommand;
+	
+	@Value("${queue.perform-billing-command}")
+	private String queuePerformBillingCommand;
+	
+	@Value("${queue.invoice-command}")
+	private String queueIssueInvoiceCommand;
+	
+	@Value("${queue.schedule-order-command}")
+	private String queueScheduleOrderCommand;
+	
 	@Test
 	@Order(1)
-	@DisplayName("Dado um novo pedido criado, quando publicar evento de pedido registrado, então deve atualizar step para ORDER e fase para REGISTERED")
-	void givenNovoPedido_WhenPublishEventPedidoRegistrado_ThenOrderShouldBeUpdatedToStepOrderAndFaseRegistered() throws InterruptedException {
+	@DisplayName("Dado um novo pedido criado, quando OrderService publicar OrderCreatedEvent, então Production deve atualizar step para ORDER e fase para CREATED")
+	void givenOrderCreatedEvent_WhenConsume_ThenOrderShouldBeUpdatedToStepOrderAndFaseRegistered() throws InterruptedException {
 		ORDER_ID = createNewOrder();
 
-		var event = new PedidoRegistradoDto(ORDER_ID);
-		assertThat(pedidoRegistradoEventPublisher.publish(event))
+		var event = new OrderCreatedEvent(ORDER_ID);
+		assertThat(orderCreatedEventPublisher.publish(event))
 			.isPresent();
 		
-		verifyStatusWereUpdated(ORDER_ID, Step.ORDER, Fase.REGISTERED);
+		verifyStatusWereUpdated(ORDER_ID, Step.ORDER, Fase.CREATED);
 		
 		assertThat(eventAdapter.findByOrderId(ORDER_ID))
 			.isNotEmpty()
 			.hasSize(1)
-			.haveExactly(1, hasEventByName(PedidoRegistradoDto.EVENT_NAME));
+			.haveExactly(1, hasEventByName(OrderCreatedEvent.EVENT_NAME));
 	}
-	
-	// FIXME: givenPedidoCriado_WhenPublishEventReservaRealizada_ThenFaseShouldBeUpdatedToRegistered
 	
 	@Test
 	@Order(2)
-	@DisplayName("Dado um pedido registrado, quando publicar evento de cobrança realizada, então deve atualizar step para CHARGE e fase para CONFIRMED")
-	void givenReservaRealizada_WhenPublishEventCobrancaRealizada_ThenOrderShouldBeUpdatedToStepChargeAndFaseConfirmed() throws InterruptedException {
-		var event = new CobrancaRealizadaDto(ORDER_ID);
-		assertThat(cobrancaRealizadaEventPublisher.publish(event))
+	@DisplayName("Dado um pedido criado, quando ProductionService publicar OrderStockCommand, então StockService deve executar reserva de estoque")
+	void givenCreatedOrder_WhenPublishOrderStockCommand_ThenShouldWaitForStockService() {
+
+		var command = new OrderStockCommand(ORDER_ID);
+		assertThat(orderStockCommandPublisher.publish(command))
+			.isPresent();
+		
+		// validation
+        await().atMost(3, TimeUnit.SECONDS).untilAsserted(() -> {
+        	var queue = sqsQueueSupport.buildQueueUrl(queueOrderStockCommand);
+            assertThat(numberOfMessagesInQueue(queue)).isEqualTo(1);
+            assertThat(numberOfMessagesNotVisibleInQueue(queue)).isZero();
+        });
+		
+		assertThat(eventAdapter.findByOrderId(ORDER_ID))
+			.isNotEmpty()
+			.hasSize(1)
+			.haveExactly(1, hasEventByName(OrderCreatedEvent.EVENT_NAME));
+		// TODO: persistir evento quando publicar command?
+	}
+	
+	@Test
+	@Order(3)
+	@DisplayName("Dado um pedido aguardando encomenda, quando StockService publicar evento de pedido encomendado, então ProductionService deve atualizar step para DELIVERY e fase para CREATED")
+	void givenOrderOrderedEvent_WhenConsume_ThenOrderShouldBeUpdatedToStepDeliveryAndFaseCreated() throws InterruptedException {
+		var event = new OrderOrderedEvent(ORDER_ID);
+		assertThat(orderOrderedEventPublisher.publish(event))
+			.isPresent();
+		
+		verifyStatusWereUpdated(ORDER_ID, Step.DELIVERY, Fase.CREATED);
+		
+		assertThat(eventAdapter.findByOrderId(ORDER_ID))
+			.isNotEmpty()
+			.hasSize(2)
+			.haveExactly(1, hasEventByName(OrderCreatedEvent.EVENT_NAME))
+			.haveExactly(1, hasEventByName(OrderOrderedEvent.EVENT_NAME));
+	}
+	
+	@Test
+	@Order(4)
+	@DisplayName("Dado um pedido encomendado, quando ProductionService publicar PerformBillingCommand, então PaymentService deve tratar o pagamento da cobrança")
+	void givenOrderedOrder_WhenPublishPerformBillingCommand_ThenShouldWaitForPaymentService() {
+
+		var command = new PerformBillingCommand(ORDER_ID);
+		assertThat(performBillingCommandPublisher.publish(command))
+			.isPresent();
+		
+		// validation
+        await().atMost(3, TimeUnit.SECONDS).untilAsserted(() -> {
+        	var queue = sqsQueueSupport.buildQueueUrl(queuePerformBillingCommand);
+            assertThat(numberOfMessagesInQueue(queue)).isEqualTo(1);
+            assertThat(numberOfMessagesNotVisibleInQueue(queue)).isZero();
+        });
+		
+		assertThat(eventAdapter.findByOrderId(ORDER_ID))
+			.isNotEmpty()
+			.hasSize(2)
+			.haveExactly(1, hasEventByName(OrderCreatedEvent.EVENT_NAME))
+			.haveExactly(1, hasEventByName(OrderOrderedEvent.EVENT_NAME));
+		// TODO: persistir evento quando publicar command?
+	}
+	
+	@Test
+	@Order(5)
+	@DisplayName("Dado um pedido com cobrança pendente, quando PaymentService publicar evento de cobança realizada, então ProductionService deve atualizar step para CHARGE e fase para CONFIRMED")
+	void givenBillPending_WhenPublishBillPerformedEvent_ThenOrderShouldBeUpdatedToStepChargeAndFaseConfirmed() throws InterruptedException {
+		var event = new BillPerformedEvent(ORDER_ID);
+		assertThat(billPerformedEventPublisher.publish(event))
 			.isPresent();
 		
 		verifyStatusWereUpdated(ORDER_ID, Step.CHARGE, Fase.CONFIRMED);
 		
 		assertThat(eventAdapter.findByOrderId(ORDER_ID))
 			.isNotEmpty()
-			.hasSize(2)
-			.haveExactly(1, hasEventByName(PedidoRegistradoDto.EVENT_NAME))
-			.haveExactly(1, hasEventByName(CobrancaRealizadaDto.EVENT_NAME));
+			.hasSize(3)
+			.haveExactly(1, hasEventByName(OrderCreatedEvent.EVENT_NAME))
+			.haveExactly(1, hasEventByName(OrderOrderedEvent.EVENT_NAME))
+			.haveExactly(1, hasEventByName(BillPerformedEvent.EVENT_NAME));
 	}
 	
 	@Test
-	@Order(3)
-	@DisplayName("Dado um pedido com cobrança realizada, quando publicar evento de entrega agendada, então deve atualizar step para DELIVERY e fase para REGISTERED")
-	void givenCobrancaRealizada_WhenPublishEventEntregaAgendada_ThenOrderShouldBeUpdatedToStepDeliveryAndFaseRegistered() throws InterruptedException {
-		var event = new EntregaAgendadaDto(ORDER_ID);
-		assertThat(entregaAgendadaEventPublisher.publish(event))
+	@Order(6)
+	@DisplayName("Dado um pedido pago, quando ProductionService publicar IssueInvoiceCommand, então NotaFiscalService deve tratar o pagamento da cobrança")
+	void givenPaidOrder_WhenPublishIssueInvoiceCommand_ThenShouldWaitForNotaFiscalService() {
+
+		var command = new IssueInvoiceCommand(ORDER_ID);
+		assertThat(issueInvoiceCommandPublisher.publish(command))
 			.isPresent();
 		
-		verifyStatusWereUpdated(ORDER_ID, Step.DELIVERY, Fase.REGISTERED);
+		// validation
+        await().atMost(3, TimeUnit.SECONDS).untilAsserted(() -> {
+        	var queue = sqsQueueSupport.buildQueueUrl(queueIssueInvoiceCommand);
+            assertThat(numberOfMessagesInQueue(queue)).isEqualTo(1);
+            assertThat(numberOfMessagesNotVisibleInQueue(queue)).isZero();
+        });
 		
 		assertThat(eventAdapter.findByOrderId(ORDER_ID))
 			.isNotEmpty()
 			.hasSize(3)
-			.haveExactly(1, hasEventByName(PedidoRegistradoDto.EVENT_NAME))
-			.haveExactly(1, hasEventByName(CobrancaRealizadaDto.EVENT_NAME))
-			.haveExactly(1, hasEventByName(EntregaAgendadaDto.EVENT_NAME));
+			.haveExactly(1, hasEventByName(OrderCreatedEvent.EVENT_NAME))
+			.haveExactly(1, hasEventByName(OrderOrderedEvent.EVENT_NAME))
+			.haveExactly(1, hasEventByName(BillPerformedEvent.EVENT_NAME));
+		// TODO: persistir evento quando publicar command?
 	}
 	
 	@Test
-	@Order(4)
-	@DisplayName("Dado um pedido com entrega agendada, quando publicar evento de nota fiscal emitida, então deve atualizar step para INVOICE e fase para CONFIRMED")
-	void givenEntregaAgendada_WhenPublishEventNotaFiscalEmitidaDto_ThenOrderShouldBeUpdatedToStepInvoiceAndFaseConfirmed() throws InterruptedException {
-		var event = new NotaFiscalEmitidaDto(ORDER_ID);
-		assertThat(notaFiscalEmitidaEventPublisher.publish(event))
+	@Order(7)
+	@DisplayName("Dado um pedido com cobrança realizada, quando NotaFiscalService publicar evento InvoiceIssueEvent, então ProductionService deve atualizar step para INVOICE e fase para CONFIRMED")
+	void givenBillPerformed_WhenPublishInvoiceIssueEvent_ThenOrderShouldBeUpdatedToStepInvoiceAndFaseConfirmed() throws InterruptedException {
+		var event = new InvoiceIssueEvent(ORDER_ID);
+		assertThat(invoiceIssueEventPublisher.publish(event))
 			.isPresent();
 		
 		verifyStatusWereUpdated(ORDER_ID, Step.INVOICE, Fase.CONFIRMED);
@@ -123,30 +225,56 @@ class SagaIntegrationTests extends SqsBaseIntegrationSupport {
 		assertThat(eventAdapter.findByOrderId(ORDER_ID))
 			.isNotEmpty()
 			.hasSize(4)
-			.haveExactly(1, hasEventByName(PedidoRegistradoDto.EVENT_NAME))
-			.haveExactly(1, hasEventByName(CobrancaRealizadaDto.EVENT_NAME))
-			.haveExactly(1, hasEventByName(EntregaAgendadaDto.EVENT_NAME))
-			.haveExactly(1, hasEventByName(NotaFiscalEmitidaDto.EVENT_NAME));
+			.haveExactly(1, hasEventByName(OrderCreatedEvent.EVENT_NAME))
+			.haveExactly(1, hasEventByName(OrderOrderedEvent.EVENT_NAME))
+			.haveExactly(1, hasEventByName(BillPerformedEvent.EVENT_NAME))
+			.haveExactly(1, hasEventByName(InvoiceIssueEvent.EVENT_NAME));
 	}
 	
 	@Test
-	@Order(5)
-	@DisplayName("Dado um pedido com nota fiscal emitida, quando publicar evento de pedido confirmado, então deve atualizar step para ORDER e fase para CONFIRMED")
-	void givenNotaFiscalEmitida_WhenPublishEventPedidoConfirmado_ThenFaseShouldBeUpdatedToRegistered() throws InterruptedException {
-		var event = new PedidoConfirmadoDto(ORDER_ID);
-		assertThat(pedidoConfirmadoEventPublisher.publish(event))
+	@Order(8)
+	@DisplayName("Dado um pedido com nota fiscal emitida, quando ProductionService publicar ScheduleOrderCommand, então StockService deve agendar a entrega do pedido")
+	void givenIssuedInvoiceOrder_WhenPublishScheduleOrderCommand_ThenShouldWaitForStockService() {
+
+		var command = new ScheduleOrderCommand(ORDER_ID);
+		assertThat(scheduleOrderCommandPublisher.publish(command))
 			.isPresent();
 		
-		verifyStatusWereUpdated(ORDER_ID, Step.ORDER, Fase.CONFIRMED);
+		// validation
+        await().atMost(3, TimeUnit.SECONDS).untilAsserted(() -> {
+        	var queue = sqsQueueSupport.buildQueueUrl(queueScheduleOrderCommand);
+            assertThat(numberOfMessagesInQueue(queue)).isEqualTo(1);
+            assertThat(numberOfMessagesNotVisibleInQueue(queue)).isZero();
+        });
+		
+		assertThat(eventAdapter.findByOrderId(ORDER_ID))
+			.isNotEmpty()
+			.hasSize(4)
+			.haveExactly(1, hasEventByName(OrderCreatedEvent.EVENT_NAME))
+			.haveExactly(1, hasEventByName(OrderOrderedEvent.EVENT_NAME))
+			.haveExactly(1, hasEventByName(BillPerformedEvent.EVENT_NAME))
+			.haveExactly(1, hasEventByName(InvoiceIssueEvent.EVENT_NAME));
+		// TODO: persistir evento quando publicar command?
+	}
+	
+	@Test
+	@Order(9)
+	@DisplayName("Dado um pedido aguardando agendamento de entrega, quando StockService publicar evento de entrega agendada, então ProductionService deve atualizar step para DELIVERY e fase para CREATED")
+	void givenOrderScheduledEvent_WhenConsume_ThenOrderShouldBeUpdatedToStepDeliveryAndFaseCreated() throws InterruptedException {
+		var event = new OrderScheduledEvent(ORDER_ID);
+		assertThat(orderScheduledEventPublisher.publish(event))
+			.isPresent();
+		
+		verifyStatusWereUpdated(ORDER_ID, Step.DELIVERY, Fase.CONFIRMED);
 		
 		assertThat(eventAdapter.findByOrderId(ORDER_ID))
 			.isNotEmpty()
 			.hasSize(5)
-			.haveExactly(1, hasEventByName(PedidoRegistradoDto.EVENT_NAME))
-			.haveExactly(1, hasEventByName(CobrancaRealizadaDto.EVENT_NAME))
-			.haveExactly(1, hasEventByName(EntregaAgendadaDto.EVENT_NAME))
-			.haveExactly(1, hasEventByName(NotaFiscalEmitidaDto.EVENT_NAME))
-			.haveExactly(1, hasEventByName(PedidoConfirmadoDto.EVENT_NAME));
+			.haveExactly(1, hasEventByName(OrderCreatedEvent.EVENT_NAME))
+			.haveExactly(1, hasEventByName(OrderOrderedEvent.EVENT_NAME))
+			.haveExactly(1, hasEventByName(BillPerformedEvent.EVENT_NAME))
+			.haveExactly(1, hasEventByName(InvoiceIssueEvent.EVENT_NAME))
+			.haveExactly(1, hasEventByName(OrderScheduledEvent.EVENT_NAME));
 	}
 	
 	private Condition<EventEntity> hasEventByName(String eventName) {
@@ -168,4 +296,22 @@ class SagaIntegrationTests extends SqsBaseIntegrationSupport {
 			.hasFieldOrPropertyWithValue("step", step)
 			.hasFieldOrPropertyWithValue("fase", fase);
 	}
+	
+	private Integer numberOfMessagesInQueue(String queueName) {
+        GetQueueAttributesResult attributes = sqs
+                .getQueueAttributes(queueName, of("All"));
+
+        return Integer.parseInt(
+                attributes.getAttributes().get("ApproximateNumberOfMessages")
+        );
+    }
+	
+	private Integer numberOfMessagesNotVisibleInQueue(String queueName) {
+        GetQueueAttributesResult attributes = sqs
+                .getQueueAttributes(queueName, of("All"));
+
+        return Integer.parseInt(
+            attributes.getAttributes().get("ApproximateNumberOfMessagesNotVisible")
+        );
+    }
 }
