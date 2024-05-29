@@ -37,7 +37,7 @@ class OrderOrchestratorRollbackUnitTests {
 	ObjectMapper mapper = new ObjectMapper();
 	
 	@InjectMocks
-	OrderOrchestratorRollback consumer;
+	OrderOrchestratorFailureCompensation consumer;
 	
 	@Mock
 	Acknowledgment ack;

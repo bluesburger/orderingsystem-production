@@ -93,3 +93,4 @@ _Publica_:
 <h2>Referências</h2>
 
 - [github aws-doc-sdk-examples](https://github.com/awsdocs/aws-doc-sdk-examples/tree/main/java)
+- [ibm-cloud-architecture-saga-orchestration](https://ibm-cloud-architecture.github.io/eda-saga-orchestration/#happy-path)

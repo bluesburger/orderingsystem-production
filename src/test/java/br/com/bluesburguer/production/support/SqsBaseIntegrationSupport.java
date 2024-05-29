@@ -75,12 +75,13 @@ public abstract class SqsBaseIntegrationSupport extends ApplicationIntegrationSu
 	    registry.add("queue.order.confirmed", () -> TEST_QUEUES.get(1));
 	    registry.add("queue.order.canceled", () -> TEST_QUEUES.get(2));
 	    registry.add("queue.order.paid", () -> TEST_QUEUES.get(3));
-	    registry.add("queue.order.failed-on-payment", () -> TEST_QUEUES.get(4));
 	    registry.add("queue.order.scheduled", () -> TEST_QUEUES.get(5));
-	    registry.add("queue.order.failed-delivery", () -> TEST_QUEUES.get(6));
 	    registry.add("queue.order.performed-delivery", () -> TEST_QUEUES.get(7));
 	    registry.add("queue.order.invoice-issued", () -> TEST_QUEUES.get(8));
-	    registry.add("queue.order.invoice-failed-issued", () -> TEST_QUEUES.get(9));
+	    
+	    registry.add("queue.order.stock-failed-event", () -> TEST_QUEUES.get(4));
+	    registry.add("queue.order.perform-billing-failed-event", () -> TEST_QUEUES.get(6));
+	    registry.add("queue.issue.invoice-failed-event", () -> TEST_QUEUES.get(9));
 	    
 	    registry.add("queue.order-stock-command", () -> TEST_QUEUES.get(10));
 	    registry.add("queue.invoice-command", () -> TEST_QUEUES.get(11));

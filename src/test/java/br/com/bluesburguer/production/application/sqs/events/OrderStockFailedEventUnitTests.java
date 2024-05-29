@@ -21,7 +21,6 @@ class OrderStockFailedEventUnitTests {
 	void shouldPrintToStringWithOrderId() {
 		var order = OrderStockFailedEvent.builder()
 				.orderId(ORDER_ID)
-				.step(Step.KITCHEN)
 				.build();
 		
 		assertThat(order).isNotNull();

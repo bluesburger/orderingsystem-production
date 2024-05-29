@@ -25,21 +25,21 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @RequiredArgsConstructor
 @ConditionalOnProperty(name = "cloud.aws.sqs.listener.auto-startup", havingValue = "true")
-public class OrderOrchestratorRollback {
+public class OrderOrchestratorFailureCompensation {
 
 	private final OrderPort orderPort;
 	private final EventDatabaseAdapter eventDatabaseAdapter;
 
-	@SqsListener(value = "${queue.order.canceled:order-canceled}", deletionPolicy = SqsMessageDeletionPolicy.NEVER)
+	@SqsListener(value = "${queue.order.stock-failed-event:queue.order.stock-failed-event}", deletionPolicy = SqsMessageDeletionPolicy.NEVER)
 	public void handle(OrderStockFailedEvent event, Acknowledgment ack) throws JsonProcessingException {
 		log.info("Event received on queue: {}", event.getEventName());
 
-		if (execute(event, Step.ORDER, Fase.CANCELED)) {
+		if (execute(event, Step.DELIVERY, Fase.FAILED)) {
 			ack.acknowledge();
 		}
 	}
 
-	@SqsListener(value = "${queue.order.failed-on-payment:order-failed-on-payment}", deletionPolicy = SqsMessageDeletionPolicy.NEVER)
+	@SqsListener(value = "${queue.order.perform-billing-failed-event:queue.order.perform-billing-failed-event}", deletionPolicy = SqsMessageDeletionPolicy.NEVER)
 	public void handle(@Payload PerformBillingFailedEvent event, Acknowledgment ack) {
 		log.info("Event received on queue: {}", event.getEventName());
 
@@ -48,11 +48,11 @@ public class OrderOrchestratorRollback {
 		}
 	}
 
-	@SqsListener(value = "${queue.order.failed-delivery:order-failed-delivery}", deletionPolicy = SqsMessageDeletionPolicy.NEVER)
+	@SqsListener(value = "${queue.issue.invoice-failed-event:order-failed-delivery}", deletionPolicy = SqsMessageDeletionPolicy.NEVER)
 	public void handle(@Payload IssueInvoiceFailedEvent event, Acknowledgment ack) {
 		log.info("Event received on queue: {}", event.getEventName());
 
-		if (execute(event, Step.DELIVERY, Fase.FAILED)) {
+		if (execute(event, Step.INVOICE, Fase.FAILED)) {
 			ack.acknowledge();
 		}
 	}

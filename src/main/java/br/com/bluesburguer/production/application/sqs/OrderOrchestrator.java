@@ -1,6 +1,7 @@
 package br.com.bluesburguer.production.application.sqs;
 
-import org.apache.commons.lang3.ObjectUtils;
+import java.util.Objects;
+
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cloud.aws.messaging.listener.Acknowledgment;
 import org.springframework.cloud.aws.messaging.listener.SqsMessageDeletionPolicy;
@@ -81,31 +82,17 @@ public class OrderOrchestrator {
 	}
 
 	private boolean execute(OrderEvent event, Step step, Fase fase) {
-		try {
-			if (ObjectUtils.isNotEmpty(event) && update(event, step, fase)) {
-				eventDatabaseAdapter.save(event);
-				return true;
+		if (Objects.nonNull(event)) {
+			try {
+				if (orderPort.update(event.getOrderId(), step, fase)) {
+					eventDatabaseAdapter.save(event);
+					return true;
+				}
+			} catch (Exception e) {
+				log.error("An error occurred", e);
 			}
-		} catch (Exception e) {
-			update(event, step, Fase.FAILED);
-			log.error("An error occurred", e);
 		}
-		return false;
-	}
-
-	private boolean update(OrderEvent order, Step step, Fase fase) {
-		return update(order, step, fase, false);
-	}
-
-	private boolean update(OrderEvent order, Step step, Fase fase, boolean rollback) {
-		if (orderPort.update(order.getOrderId(), step, fase)) {
-			if (rollback) {
-				log.warn("Order status {} rolled back to step {} and fase {}", order.getOrderId(), step, fase);
-			} else {
-				log.info("Order status {} updated to step {} and fase {}", order.getOrderId(), step, fase);
-			}
-			return true;
-		}
+		orderPort.update(event.getOrderId(), step, Fase.FAILED);
 		return false;
 	}
 }
