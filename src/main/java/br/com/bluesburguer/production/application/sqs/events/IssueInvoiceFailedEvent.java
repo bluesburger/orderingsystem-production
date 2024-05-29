@@ -15,7 +15,7 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class IssueInvoiceFailedEvent extends OrderEvent {
 	
-	public static final String EVENT_NAME = "ENTREGA_FALHOU";
+	public static final String EVENT_NAME = "EMISSAO_NF_FALHOU";
 
 	private static final long serialVersionUID = 7702500048926979660L;
 	

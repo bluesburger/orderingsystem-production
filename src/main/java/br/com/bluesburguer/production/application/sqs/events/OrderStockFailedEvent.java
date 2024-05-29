@@ -15,7 +15,7 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class OrderStockFailedEvent extends OrderEvent {
 	
-	public static final String EVENT_NAME = "PEDIDO_CANCELADO";
+	public static final String EVENT_NAME = "RESERVA_PEDIDO_FALHOU";
 
 	private static final long serialVersionUID = 7702500048926979660L;
 	

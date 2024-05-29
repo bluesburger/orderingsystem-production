@@ -59,7 +59,11 @@ public abstract class SqsBaseIntegrationSupport extends ApplicationIntegrationSu
 			"da33790f-8a8c-4fcd-9c99-0e432779ecba.fifo",
 			"8c519ad1-b7ff-4906-83bf-8d91bb843544.fifo",
 			"66287c0d-23c2-4b24-bd2f-24901ff7e9b0.fifo",
-			"7c38af72-7ced-4a21-9155-140031f5fddf.fifo"
+			"7c38af72-7ced-4a21-9155-140031f5fddf.fifo",
+			"ab1f64bd-fcf4-476f-b72a-4b1c17e32720.fifo",
+			"c4056b28-bf22-433d-af2f-904effda192f.fifo",
+			"4ef91acd-56b0-4156-9a54-6a5ed909e065.fifo",
+			"408e914d-e282-48aa-8c28-73e23f0e036a.fifo"
 	);
 	
 	@DynamicPropertySource
@@ -87,6 +91,11 @@ public abstract class SqsBaseIntegrationSupport extends ApplicationIntegrationSu
 	    registry.add("queue.invoice-command", () -> TEST_QUEUES.get(11));
 	    registry.add("queue.perform-billing-command", () -> TEST_QUEUES.get(12));
 	    registry.add("queue.schedule-order-command", () -> TEST_QUEUES.get(13));
+	    
+	    registry.add("queue.cancel-order-command", () -> TEST_QUEUES.get(14));
+	    registry.add("queue.cancel-billing-command", () -> TEST_QUEUES.get(15));
+	    registry.add("queue.cancel-issue-invoice-command", () -> TEST_QUEUES.get(16));
+	    registry.add("queue.cancel-order-stock-command", () -> TEST_QUEUES.get(17));
 	}
 
 	@BeforeAll
@@ -103,13 +112,6 @@ public abstract class SqsBaseIntegrationSupport extends ApplicationIntegrationSu
 					"FifoQueue=true"
 			);
 		}
-		
-		log.info("Listando queues");
-		localstackInDockerNetwork.execInContainer(
-				"awslocal",
-				"sqs",
-				"list-queues"
-		);
 	}
 
 }
