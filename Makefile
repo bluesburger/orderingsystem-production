@@ -53,3 +53,6 @@ sonarqube-publish:
 	
 sonarqube-analyze: build sonarqube-publish
 	
+create-localstack-queues:
+	@ docker compose exec localstack awslocal sqs create-queue --queue-name order-created-event.fifo --attributes "FifoQueue=true"
+	@ docker compose exec localstack awslocal sqs create-queue --queue-name queue-order-stock-command.fifo --attributes "FifoQueue=true"
