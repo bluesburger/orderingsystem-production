@@ -32,7 +32,7 @@ public class OrderOrchestrator {
 	private final EventDatabaseAdapter eventDatabaseAdapter;
 
 	// Pedido
-	@SqsListener(value = "${queue.order.created-event:order-created-event}", deletionPolicy = SqsMessageDeletionPolicy.NEVER)
+	@SqsListener(value = "${queue.order.created-event:order-created-event.fifo}", deletionPolicy = SqsMessageDeletionPolicy.NEVER)
 	public void handle(@Payload OrderCreatedEvent event, Acknowledgment ack) {
 		log.info("Event received on queue: {}", event.getEventName());
 
@@ -42,7 +42,7 @@ public class OrderOrchestrator {
 	}
 
 	// Estoque
-	@SqsListener(value = "${queue.order.ordered-event:order-ordered-event}", deletionPolicy = SqsMessageDeletionPolicy.NEVER)
+	@SqsListener(value = "${queue.order.ordered-event:order-ordered-event.fifo}", deletionPolicy = SqsMessageDeletionPolicy.NEVER)
 	public void handle(@Payload OrderOrderedEvent event, Acknowledgment ack) {
 		log.info("Event received on queue: {}", event.getEventName());
 
@@ -52,7 +52,7 @@ public class OrderOrchestrator {
 	}
 
 	// Cobrança
-	@SqsListener(value = "${queue.bill.performed-event:bill-performed-event}", deletionPolicy = SqsMessageDeletionPolicy.NEVER)
+	@SqsListener(value = "${queue.bill.performed-event:bill-performed-event.fifo}", deletionPolicy = SqsMessageDeletionPolicy.NEVER)
 	public void handle(@Payload BillPerformedEvent event, Acknowledgment ack) {
 		log.info("Event received on queue: {}", event.getEventName());
 
@@ -62,7 +62,7 @@ public class OrderOrchestrator {
 	}
 
 	// NotaFiscal
-	@SqsListener(value = "${queue.invoice-issued-event:invoice-issued-event}", deletionPolicy = SqsMessageDeletionPolicy.NEVER)
+	@SqsListener(value = "${queue.invoice-issued-event:invoice-issued-event.fifo}", deletionPolicy = SqsMessageDeletionPolicy.NEVER)
 	public void handle(@Payload InvoiceIssueEvent event, Acknowledgment ack) {
 		log.info("Event received on queue: {}", event.getEventName());
 
@@ -72,7 +72,7 @@ public class OrderOrchestrator {
 	}
 
 	// Entrega
-	@SqsListener(value = "${queue.order.scheduled-event:order-scheduled-event}", deletionPolicy = SqsMessageDeletionPolicy.NEVER)
+	@SqsListener(value = "${queue.order.scheduled-event:order-scheduled-event.fifo}", deletionPolicy = SqsMessageDeletionPolicy.NEVER)
 	public void handle(@Payload OrderScheduledEvent event, Acknowledgment ack) {
 		log.info("Event received on queue: {}", event.getEventName());
 

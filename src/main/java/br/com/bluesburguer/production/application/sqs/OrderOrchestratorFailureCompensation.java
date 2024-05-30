@@ -33,7 +33,7 @@ public class OrderOrchestratorFailureCompensation {
 	private final IOrderEventPublisher<OrderStockFailedEvent> orderStockFailedEventPublisher;
 	private final IOrderEventPublisher<PerformBillingFailedEvent> performBillingFailedEventPublisher;
 
-	@SqsListener(value = "${queue.order.stock-failed-event:queue.order.stock-failed-event}", deletionPolicy = SqsMessageDeletionPolicy.NEVER)
+	@SqsListener(value = "${queue.order.stock-failed-event:queue.order.stock-failed-event.fifo}", deletionPolicy = SqsMessageDeletionPolicy.NEVER)
 	public void handle(OrderStockFailedEvent event, Acknowledgment ack) throws JsonProcessingException {
 		log.info("Event received on queue: {}", event.getEventName());
 
@@ -43,7 +43,7 @@ public class OrderOrchestratorFailureCompensation {
 		}
 	}
 
-	@SqsListener(value = "${queue.order.perform-billing-failed-event:queue.order.perform-billing-failed-event}", deletionPolicy = SqsMessageDeletionPolicy.NEVER)
+	@SqsListener(value = "${queue.order.perform-billing-failed-event:queue.order.perform-billing-failed-event.fifo}", deletionPolicy = SqsMessageDeletionPolicy.NEVER)
 	public void handle(@Payload PerformBillingFailedEvent event, Acknowledgment ack) {
 		log.info("Event received on queue: {}", event.getEventName());
 
@@ -56,7 +56,7 @@ public class OrderOrchestratorFailureCompensation {
 		}
 	}
 
-	@SqsListener(value = "${queue.issue.invoice-failed-event:order-failed-delivery}", deletionPolicy = SqsMessageDeletionPolicy.NEVER)
+	@SqsListener(value = "${queue.issue.invoice-failed-event:order-failed-delivery.fifo}", deletionPolicy = SqsMessageDeletionPolicy.NEVER)
 	public void handle(@Payload IssueInvoiceFailedEvent event, Acknowledgment ack) {
 		log.info("Event received on queue: {}", event.getEventName());
 		
