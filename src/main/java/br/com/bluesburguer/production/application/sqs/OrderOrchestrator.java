@@ -10,6 +10,11 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Service;
 
 import br.com.bluesburguer.production.application.ports.OrderPort;
+import br.com.bluesburguer.production.application.sqs.commands.IssueInvoiceCommand;
+import br.com.bluesburguer.production.application.sqs.commands.OrderConfirmedCommand;
+import br.com.bluesburguer.production.application.sqs.commands.OrderStockCommand;
+import br.com.bluesburguer.production.application.sqs.commands.PerformBillingCommand;
+import br.com.bluesburguer.production.application.sqs.commands.ScheduleOrderCommand;
 import br.com.bluesburguer.production.application.sqs.events.BillPerformedEvent;
 import br.com.bluesburguer.production.application.sqs.events.InvoiceIssueEvent;
 import br.com.bluesburguer.production.application.sqs.events.OrderCreatedEvent;
@@ -19,6 +24,7 @@ import br.com.bluesburguer.production.application.sqs.events.OrderScheduledEvent
 import br.com.bluesburguer.production.domain.entity.Fase;
 import br.com.bluesburguer.production.domain.entity.Step;
 import br.com.bluesburguer.production.infra.database.EventDatabaseAdapter;
+import br.com.bluesburguer.production.infra.sqs.commands.IOrderCommandPublisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -30,6 +36,12 @@ public class OrderOrchestrator {
 
 	private final OrderPort orderPort;
 	private final EventDatabaseAdapter eventDatabaseAdapter;
+	
+	private final IOrderCommandPublisher<OrderStockCommand> orderStockCommandPublisher;
+	private final IOrderCommandPublisher<PerformBillingCommand> performBillingCommandPublisher;
+	private final IOrderCommandPublisher<IssueInvoiceCommand> issueInvoiceCommandPublisher;
+	private final IOrderCommandPublisher<ScheduleOrderCommand> scheduleOrderCommandPublisher;
+	private final IOrderCommandPublisher<OrderConfirmedCommand> orderConfirmedCommandPublisher;
 
 	// Pedido
 	@SqsListener(value = "${queue.order.created-event:order-created-event.fifo}", deletionPolicy = SqsMessageDeletionPolicy.NEVER)
@@ -37,7 +49,10 @@ public class OrderOrchestrator {
 		log.info("Event received on queue: {}", event.getEventName());
 
 		if (execute(event, Step.ORDER, Fase.CREATED)) {
-			ack.acknowledge();
+			var command = new OrderStockCommand(event.getOrderId());
+			if (orderStockCommandPublisher.publish(command).isPresent()) {
+				ack.acknowledge();
+			}
 		}
 	}
 
@@ -47,7 +62,10 @@ public class OrderOrchestrator {
 		log.info("Event received on queue: {}", event.getEventName());
 
 		if (execute(event, Step.DELIVERY, Fase.CREATED)) {
-			ack.acknowledge();
+			var command = new PerformBillingCommand(event.getOrderId());
+			if (performBillingCommandPublisher.publish(command).isPresent()) {
+				ack.acknowledge();
+			}
 		}
 	}
 
@@ -57,7 +75,10 @@ public class OrderOrchestrator {
 		log.info("Event received on queue: {}", event.getEventName());
 
 		if (execute(event, Step.CHARGE, Fase.CONFIRMED)) {
-			ack.acknowledge();
+			var command = new IssueInvoiceCommand(event.getOrderId());
+			if (issueInvoiceCommandPublisher.publish(command).isPresent()) {
+				ack.acknowledge();
+			}
 		}
 	}
 
@@ -67,7 +88,10 @@ public class OrderOrchestrator {
 		log.info("Event received on queue: {}", event.getEventName());
 
 		if (execute(event, Step.INVOICE, Fase.CONFIRMED)) {
-			ack.acknowledge();
+			var command = new ScheduleOrderCommand(event.getOrderId());
+			if (scheduleOrderCommandPublisher.publish(command).isPresent()) {
+				ack.acknowledge();
+			}
 		}
 	}
 
@@ -77,7 +101,10 @@ public class OrderOrchestrator {
 		log.info("Event received on queue: {}", event.getEventName());
 
 		if (execute(event, Step.DELIVERY, Fase.CONFIRMED)) {
-			ack.acknowledge();
+			var command = new OrderConfirmedCommand(event.getOrderId());
+			if (orderConfirmedCommandPublisher.publish(command).isPresent()) {
+				ack.acknowledge();
+			}
 		}
 	}
 
