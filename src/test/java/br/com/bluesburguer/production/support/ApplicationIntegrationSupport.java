@@ -1,5 +1,7 @@
 package br.com.bluesburguer.production.support;
 
+import java.util.List;
+
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
@@ -10,9 +12,15 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
+import com.github.tomakehurst.wiremock.matching.EqualToPattern;
 
 import br.com.bluesburguer.production.OrderingsystemProductionApplication;
+import br.com.bluesburguer.production.domain.entity.Fase;
+import br.com.bluesburguer.production.domain.entity.Step;
 import br.com.bluesburguer.production.infra.adapters.order.dto.OrderDto;
+import br.com.bluesburguer.production.infra.adapters.order.dto.OrderItemDto;
+import br.com.bluesburguer.production.infra.adapters.order.dto.OrderRequest;
+import br.com.bluesburguer.production.infra.adapters.user.dto.UserDto;
 import wiremock.org.eclipse.jetty.http.HttpStatus;
 
 @TestPropertySource("classpath:application-test.properties")
@@ -39,6 +47,14 @@ public abstract class ApplicationIntegrationSupport {
 
 	private static final ObjectMapper mapper = new ObjectMapper();
 	
+	public static void mockOrderClientCreateNewOrder(WireMockExtension wme, String uri, OrderRequest orderRequest) throws JsonProcessingException {
+		wme.stubFor(WireMock.post(WireMock.urlPathEqualTo("/api/order"))
+				.withRequestBody(new EqualToPattern(mapper.writeValueAsString(orderRequest)))
+				.willReturn(WireMock.aResponse()
+						.withStatus(HttpStatus.OK_200)
+						.withHeader("Location", uri)));
+	}
+	
 	public static void mockOrderClientGetById(WireMockExtension wme, OrderDto orderDto) throws JsonProcessingException {
 		var orderJson = mockOrderAsJson(orderDto);
 		wme.stubFor(WireMock.get(WireMock.urlPathEqualTo("/api/order/" + orderDto.getId()))
@@ -60,5 +76,16 @@ public abstract class ApplicationIntegrationSupport {
 	
 	public static String mockOrderAsJson(OrderDto orderDto) throws JsonProcessingException {
 		return mapper.writeValueAsString(orderDto);
+	}
+	
+	protected OrderDto mockOrderClient(WireMockExtension wme, String orderId, Step step, Fase fase) throws JsonProcessingException {
+		var items = List.of(new OrderItemDto(1L, 1));
+		var user = new UserDto(1L, OrderMocks.mockCpf(), OrderMocks.mockEmail());
+		var orderDto = new OrderDto(orderId, step, fase, items, user);
+
+		mockOrderClientGetById(wme, orderDto);
+		mockOrderClientUpdateStepAndFase(wme, orderDto);
+
+		return orderDto;
 	}
 }

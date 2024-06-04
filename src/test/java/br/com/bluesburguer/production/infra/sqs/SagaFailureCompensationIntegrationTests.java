@@ -1,5 +1,6 @@
 package br.com.bluesburguer.production.infra.sqs;
 
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static java.util.List.of;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
@@ -11,6 +12,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -18,12 +20,19 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.model.GetQueueAttributesResult;
 import com.amazonaws.services.sqs.model.PurgeQueueRequest;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.github.tomakehurst.wiremock.common.ConsoleNotifier;
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
+import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
+import br.com.bluesburguer.production.application.sqs.commands.OrderCommand;
 import br.com.bluesburguer.production.application.sqs.events.IssueInvoiceFailedEvent;
 import br.com.bluesburguer.production.application.sqs.events.OrderStockFailedEvent;
 import br.com.bluesburguer.production.application.sqs.events.PerformBillingFailedEvent;
 import br.com.bluesburguer.production.domain.entity.Cpf;
 import br.com.bluesburguer.production.domain.entity.Email;
+import br.com.bluesburguer.production.domain.entity.Fase;
+import br.com.bluesburguer.production.domain.entity.Step;
 import br.com.bluesburguer.production.infra.adapters.order.OrderClient;
 import br.com.bluesburguer.production.infra.adapters.order.dto.OrderItemRequest;
 import br.com.bluesburguer.production.infra.adapters.order.dto.OrderRequest;
@@ -35,10 +44,11 @@ import lombok.RequiredArgsConstructor;
 
 @ExtendWith(SpringExtension.class)
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
+@WireMockTest
 class SagaFailureCompensationIntegrationTests extends SqsBaseIntegrationSupport {
 	
 	private final AmazonSQS sqs;
-	private final SqsQueueSupport sqsQueueSupport;
+	private final SqsQueueSupport<OrderCommand> sqsQueueSupport;
 	
 	private final OrderClient orderClient;
 	
@@ -55,17 +65,32 @@ class SagaFailureCompensationIntegrationTests extends SqsBaseIntegrationSupport 
 	@Value("${queue.cancel-billing-command}")
 	private String queueCancelBillingCommand;
 	
+	@RegisterExtension
+	static WireMockExtension wme = WireMockExtension.newInstance() //
+			.options(wireMockConfig() // configuração padrão
+					.port(8000) // porta definida nas configurações de testes
+					.notifier(new ConsoleNotifier(true)) // saída no console
+			).proxyMode(true).build();
+	
 	@AfterEach
 	void tearDown() {
 		pruneQueue(queueCancelOrderCommand);
 		pruneQueue(queueCancelOrderStockCommand);
 		pruneQueue(queueCancelBillingCommand);
 	}
+	
+	private String mockCreateNewOrder() throws JsonProcessingException {
+		var step = Step.ORDER;
+		var fase = Fase.CREATED;		
+		String orderId = createNewOrder();
+		mockOrderClient(wme, orderId, step, fase);
+		return orderId;
+	}
 		
 	@Test
 	@DisplayName("Dado um pedido que falhou na reserva de estoque, quando StockService publicar OrderStockFailedEvent, então ProductionService deve executar saga de cancelamento")
-	void givenOrderStockFailedEvent_WhenConsume_ThenOrderShouldBeUpdatedToStepDELIVERYAndFaseFailed() {
-		String orderId = createNewOrder();
+	void givenOrderStockFailedEvent_WhenConsume_ThenOrderShouldBeUpdatedToStepDELIVERYAndFaseFailed() throws JsonProcessingException {
+		String orderId = mockCreateNewOrder();
 
 		var event = new OrderStockFailedEvent(orderId);
 		assertThat(orderStockFailedPublisher.publish(event))
@@ -76,8 +101,8 @@ class SagaFailureCompensationIntegrationTests extends SqsBaseIntegrationSupport 
 	
 	@Test
 	@DisplayName("Dado um pedido que falhou na execução do pagamento, quando PaymentService publicar PerformBillingFailedEvent, então ProductionService deve executar saga de cancelamento")
-	void givenPerformBillingFailedEvent_WhenConsume_ThenShouldExecuteCompensationSaga() {
-		String orderId = createNewOrder();
+	void givenPerformBillingFailedEvent_WhenConsume_ThenShouldExecuteCompensationSaga() throws JsonProcessingException {
+		String orderId = mockCreateNewOrder();
 
 		var event = new PerformBillingFailedEvent(orderId);
 		assertThat(performBillingFailedPublisher.publish(event))
@@ -89,8 +114,8 @@ class SagaFailureCompensationIntegrationTests extends SqsBaseIntegrationSupport 
 	
 	@Test
 	@DisplayName("Dado um pedido que falhou na emissão da nota fiscal, quando NotaFiscalService publicar IssueInvoiceFailedEvent, então ProductionService deve executar saga de cancelamento")
-	void givenIssueInvoiceFailedEvent_WhenConsume_ThenShouldExecuteCompensationSaga() {
-		String orderId = createNewOrder();
+	void givenIssueInvoiceFailedEvent_WhenConsume_ThenShouldExecuteCompensationSaga() throws JsonProcessingException {
+		String orderId = mockCreateNewOrder();
 
 		var event = new IssueInvoiceFailedEvent(orderId);
 		assertThat(issueInvoiceFailedPublisher.publish(event))
@@ -101,10 +126,13 @@ class SagaFailureCompensationIntegrationTests extends SqsBaseIntegrationSupport 
 		queueHasCommandQuantity(queueCancelOrderCommand, 1);
 	}
 	
-	private String createNewOrder() {
+	private String createNewOrder() throws JsonProcessingException {
 		var orderRequest = new OrderRequest(
 				List.of(new OrderItemRequest(1L, 1)), 
 				new UserRequest(1L, new Cpf(OrderMocks.mockCpf()), new Email(OrderMocks.mockEmail())));
+		
+		mockOrderClientCreateNewOrder(wme, "asd-asd-asd-asd-asd", orderRequest);
+		
 		var response = orderClient.createNewOrder(orderRequest);
 		return response.headers().get("Location").stream().findFirst()
 				.orElseThrow(() -> new RuntimeException("Id do pedido não encontrado na resposta"));

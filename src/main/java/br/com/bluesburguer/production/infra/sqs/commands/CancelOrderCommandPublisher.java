@@ -10,7 +10,8 @@ import lombok.ToString;
 @Service
 public class CancelOrderCommandPublisher extends OrderCommandPublisher<CancelOrderCommand> {
 
-	public CancelOrderCommandPublisher(@Value("${queue.cancel-order-command:queue-cancel-order-command}") String queueName) {
+	public CancelOrderCommandPublisher(
+			@Value("${queue.cancel-order-command:queue-cancel-order-command.fifo}") String queueName) {
 		super(queueName);
 	}
 }

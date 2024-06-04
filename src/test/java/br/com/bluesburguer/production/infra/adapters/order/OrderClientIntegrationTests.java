@@ -19,11 +19,11 @@ import br.com.bluesburguer.production.domain.entity.Step;
 import br.com.bluesburguer.production.infra.adapters.order.dto.OrderDto;
 import br.com.bluesburguer.production.infra.adapters.order.dto.OrderItemDto;
 import br.com.bluesburguer.production.infra.adapters.user.dto.UserDto;
-import br.com.bluesburguer.production.support.ApplicationIntegrationSupport;
 import br.com.bluesburguer.production.support.OrderMocks;
+import br.com.bluesburguer.production.support.SqsBaseIntegrationSupport;
 
 @WireMockTest
-class OrderClientIntegrationTests extends ApplicationIntegrationSupport {
+class OrderClientIntegrationTests extends SqsBaseIntegrationSupport {
 	
 	private static final String ORDER_ID = "556f2b18-bda4-4d05-934f-7c0063d78f48";
 	
@@ -33,7 +33,8 @@ class OrderClientIntegrationTests extends ApplicationIntegrationSupport {
 	@RegisterExtension
 	static WireMockExtension wme = WireMockExtension.newInstance()
 		.options(wireMockConfig()
-				//.notifier(new ConsoleNotifier(true))
+				.port(8000)
+//				.notifier(new ConsoleNotifier(true))
 		)
 		.proxyMode(true)
 		.build();
@@ -49,7 +50,7 @@ class OrderClientIntegrationTests extends ApplicationIntegrationSupport {
 		mockOrderClientGetById(wme, orderDto);
 
 		// when
-		var orderResponse = orderClient.getById(ORDER_ID);
+		var orderResponse = orderClient.getById(orderDto.getId());
 		
 		// then
 		assertThat(orderResponse).isEqualTo(orderDto);

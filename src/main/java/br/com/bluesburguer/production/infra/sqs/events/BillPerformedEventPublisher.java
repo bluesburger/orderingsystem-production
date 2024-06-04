@@ -10,7 +10,7 @@ import lombok.ToString;
 @Service
 public class BillPerformedEventPublisher extends OrderEventPublisher<BillPerformedEvent> {
 
-	public BillPerformedEventPublisher(@Value("${queue.bill.performed-event:bill-performed-event}") String queueName) {
+	public BillPerformedEventPublisher(@Value("${queue.bill.performed-event:bill-performed-event.fifo}") String queueName) {
 		super(queueName);
 	}
 

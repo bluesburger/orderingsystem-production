@@ -63,7 +63,8 @@ public abstract class SqsBaseIntegrationSupport extends ApplicationIntegrationSu
 			"ab1f64bd-fcf4-476f-b72a-4b1c17e32720.fifo",
 			"c4056b28-bf22-433d-af2f-904effda192f.fifo",
 			"4ef91acd-56b0-4156-9a54-6a5ed909e065.fifo",
-			"408e914d-e282-48aa-8c28-73e23f0e036a.fifo"
+			"408e914d-e282-48aa-8c28-73e23f0e036a.fifo",
+			"a91c726a-26bc-40ca-84e6-89e37527eee0.fifo"
 	);
 	
 	@DynamicPropertySource
@@ -73,29 +74,30 @@ public abstract class SqsBaseIntegrationSupport extends ApplicationIntegrationSu
 	    registry.add("cloud.aws.credentials.access-key", localstackInDockerNetwork.getAccessKey()::toString);
 	    registry.add("cloud.aws.credentials.secret-key", localstackInDockerNetwork.getSecretKey()::toString);
 	    registry.add("cloud.aws.end-point.uri", localstackInDockerNetwork.getEndpointOverride(Service.SQS)::toString);
+	    registry.add("cloud.aws.endpoint.uri", localstackInDockerNetwork.getEndpointOverride(Service.SQS)::toString);
 	    registry.add("cloud.aws.accountId", () -> "000000000000");
 	    
-	    registry.add("queue.order.registered", () -> TEST_QUEUES.get(0));
-	    registry.add("queue.order.confirmed", () -> TEST_QUEUES.get(1));
-	    registry.add("queue.order.canceled", () -> TEST_QUEUES.get(2));
-	    registry.add("queue.order.paid", () -> TEST_QUEUES.get(3));
-	    registry.add("queue.order.scheduled", () -> TEST_QUEUES.get(5));
-	    registry.add("queue.order.performed-delivery", () -> TEST_QUEUES.get(7));
-	    registry.add("queue.order.invoice-issued", () -> TEST_QUEUES.get(8));
-	    
-	    registry.add("queue.order.stock-failed-event", () -> TEST_QUEUES.get(4));
+	    registry.add("queue.order.created-event", () -> TEST_QUEUES.get(0));
+	    registry.add("queue.order.ordered-event", () -> TEST_QUEUES.get(1));
+	    registry.add("queue.bill.performed-event", () -> TEST_QUEUES.get(2));
+	    registry.add("queue.invoice-issued-event", () -> TEST_QUEUES.get(3));
+	    registry.add("queue.order.scheduled-event", () -> TEST_QUEUES.get(4));
+	    registry.add("queue.order.stock-failed-event", () -> TEST_QUEUES.get(5));
 	    registry.add("queue.order.perform-billing-failed-event", () -> TEST_QUEUES.get(6));
-	    registry.add("queue.issue.invoice-failed-event", () -> TEST_QUEUES.get(9));
+	    registry.add("queue.issue.invoice-failed-event", () -> TEST_QUEUES.get(7));
 	    
-	    registry.add("queue.order-stock-command", () -> TEST_QUEUES.get(10));
-	    registry.add("queue.invoice-command", () -> TEST_QUEUES.get(11));
-	    registry.add("queue.perform-billing-command", () -> TEST_QUEUES.get(12));
-	    registry.add("queue.schedule-order-command", () -> TEST_QUEUES.get(13));
+	    registry.add("queue.order-stock-cancel-command", () -> TEST_QUEUES.get(8));
+	    registry.add("queue.order-stock-command", () -> TEST_QUEUES.get(9));
+	    registry.add("queue.invoice-command", () -> TEST_QUEUES.get(10));
+	    registry.add("queue.perform-billing-command", () -> TEST_QUEUES.get(11));
+	    registry.add("queue.schedule-order-command", () -> TEST_QUEUES.get(12));
 	    
+	    registry.add("queue.perform-billing-cancel-command", () -> TEST_QUEUES.get(13));
 	    registry.add("queue.cancel-order-command", () -> TEST_QUEUES.get(14));
 	    registry.add("queue.cancel-billing-command", () -> TEST_QUEUES.get(15));
 	    registry.add("queue.cancel-issue-invoice-command", () -> TEST_QUEUES.get(16));
 	    registry.add("queue.cancel-order-stock-command", () -> TEST_QUEUES.get(17));
+	    registry.add("queue.order-confirmed-command", () -> TEST_QUEUES.get(18));
 	}
 
 	@BeforeAll

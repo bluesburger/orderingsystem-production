@@ -51,6 +51,7 @@ public class OrderOrchestrator {
 		if (execute(event, Step.ORDER, Fase.CREATED)) {
 			var command = new OrderStockCommand(event.getOrderId());
 			if (orderStockCommandPublisher.publish(command).isPresent()) {
+				log.info("Published command {}", command);
 				ack.acknowledge();
 			}
 		}

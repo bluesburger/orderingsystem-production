@@ -11,7 +11,7 @@ import lombok.ToString;
 public class OrderStockCanceledCommandPublisher extends OrderCommandPublisher<OrderStockCancelCommand> {
 
 	public OrderStockCanceledCommandPublisher(
-			@Value("${queue.order-stock-cancel-command:queue-order-stock-cancel-command}") String queueName) {
+			@Value("${queue.order-stock-cancel-command:queue-order-stock-cancel-command.fifo}") String queueName) {
 		super(queueName);
 	}
 

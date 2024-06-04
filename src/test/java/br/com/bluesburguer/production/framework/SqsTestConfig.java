@@ -2,19 +2,60 @@ package br.com.bluesburguer.production.framework;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.cloud.aws.core.env.ResourceIdResolver;
 import org.springframework.cloud.aws.messaging.listener.SimpleMessageListenerContainer;
 import org.springframework.cloud.aws.messaging.support.destination.DynamicQueueUrlDestinationResolver;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 import org.springframework.messaging.core.CachingDestinationResolverProxy;
 import org.springframework.messaging.core.DestinationResolver;
 
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
+import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.client.builder.AwsClientBuilder;
+import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.AmazonSQSAsync;
+import com.amazonaws.services.sqs.AmazonSQSAsyncClientBuilder;
+import com.amazonaws.services.sqs.AmazonSQSClientBuilder;
 
 @TestConfiguration
 public class SqsTestConfig {
+	
+	@Value("${cloud.aws.region.static}")
+	private String region;
+
+	@Value("${cloud.aws.endpoint.uri}")
+	private String sqsUrl;
+
+	@Value("${cloud.aws.credentials.access-key}")
+	private String accessKeyId;
+
+	@Value("${cloud.aws.credentials.secret-key}")
+	private String secretAccessKey;
+	
+	@Bean
+	AmazonSQS amazonSQS() {
+		return AmazonSQSClientBuilder
+				.standard()
+				.withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(sqsUrl, region))
+				.withCredentials(
+						new AWSStaticCredentialsProvider(new BasicAWSCredentials(accessKeyId, secretAccessKey)))
+				.build();
+	}
+
+	@Bean
+	@Primary
+	AmazonSQSAsync amazonSQSAsync() {
+		return AmazonSQSAsyncClientBuilder
+				.standard()
+				.withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(sqsUrl, region))
+				.withCredentials(
+						new AWSStaticCredentialsProvider(new BasicAWSCredentials(accessKeyId, secretAccessKey)))
+				.build();
+	}
 
     /**
      * Configures the SimpleMessageListenerContainer to auto-create a SQS Queue in case it does not exist.

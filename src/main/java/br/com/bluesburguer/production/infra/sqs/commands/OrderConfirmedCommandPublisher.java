@@ -10,7 +10,8 @@ import lombok.ToString;
 @Service
 public class OrderConfirmedCommandPublisher extends OrderCommandPublisher<OrderConfirmedCommand> {
 
-	public OrderConfirmedCommandPublisher(@Value("${queue.order-confirmed-command:queue-order-confirmed-command}") String queueName) {
+	public OrderConfirmedCommandPublisher(
+			@Value("${queue.order-confirmed-command:queue-order-confirmed-command.fifo}") String queueName) {
 		super(queueName);
 	}
 

@@ -56,3 +56,52 @@ sonarqube-analyze: build sonarqube-publish
 create-localstack-queues:
 	@ docker compose exec localstack awslocal sqs create-queue --queue-name order-created-event.fifo --attributes "FifoQueue=true"
 	@ docker compose exec localstack awslocal sqs create-queue --queue-name queue-order-stock-command.fifo --attributes "FifoQueue=true"
+	@ docker compose exec localstack awslocal sqs create-queue --queue-name queue-cancel-order-stock-command.fifo --attributes "FifoQueue=true"
+	@ docker compose exec localstack awslocal sqs create-queue --queue-name order-stock-failed-event.fifo --attributes "FifoQueue=true"
+	@ docker compose exec localstack awslocal sqs create-queue --queue-name queue-order-stock-command.fifo --attributes "FifoQueue=true"
+	@ docker compose exec localstack awslocal sqs create-queue --queue-name invoice-issued-event.fifo --attributes "FifoQueue=true"
+	@ docker compose exec localstack awslocal sqs create-queue --queue-name order-scheduled-event.fifo --attributes "FifoQueue=true"
+	@ docker compose exec localstack awslocal sqs create-queue --queue-name bill-performed-event.fifo --attributes "FifoQueue=true"
+	@ docker compose exec localstack awslocal sqs create-queue --queue-name order-ordered-event.fifo --attributes "FifoQueue=true"
+	@ docker compose exec localstack awslocal sqs create-queue --queue-name stock-failed-event.fifo --attributes "FifoQueue=true"
+	@ docker compose exec localstack awslocal sqs create-queue --queue-name order-failed-delivery.fifo --attributes "FifoQueue=true"
+	@ docker compose exec localstack awslocal sqs create-queue --queue-name perform-billing-failed-event.fifo --attributes "FifoQueue=true"
+	@ docker compose exec localstack awslocal sqs create-queue --queue-name queue-perform-billing-command.fifo --attributes "FifoQueue=true"
+	@ docker compose exec localstack awslocal sqs create-queue --queue-name queue-cancel-bill-command.fifo --attributes "FifoQueue=true"
+	@ docker compose exec localstack awslocal sqs create-queue --queue-name queue-invoice-command.fifo --attributes "FifoQueue=true"
+	@ docker compose exec localstack awslocal sqs create-queue --queue-name queue-cancel-invoice-command.fifo --attributes "FifoQueue=true"
+	@ docker compose exec localstack awslocal sqs create-queue --queue-name queue-schedule-order-command.fifo --attributes "FifoQueue=true"
+	@ docker compose exec localstack awslocal sqs create-queue --queue-name queue-order-confirmed-command.fifo --attributes "FifoQueue=true"
+	
+purge-all-localstack-queues:
+	@ docker compose exec localstack awslocal sqs create-queue --queue-name order-created-event.fifo --attributes "FifoQueue=true"
+	@ docker compose exec localstack awslocal sqs purge-queue --queue-url http://sqs.us-east-1.localhost.localstack.cloud:4566/000000000000/queue-order-stock-command.fifo
+	@ docker compose exec localstack awslocal sqs purge-queue --queue-url http://sqs.us-east-1.localhost.localstack.cloud:4566/000000000000/queue-cancel-order-stock-command.fifo
+	@ docker compose exec localstack awslocal sqs purge-queue --queue-url http://sqs.us-east-1.localhost.localstack.cloud:4566/000000000000/order-stock-failed-event.fifo
+	@ docker compose exec localstack awslocal sqs purge-queue --queue-url http://sqs.us-east-1.localhost.localstack.cloud:4566/000000000000/queue-order-stock-command.fifo
+	@ docker compose exec localstack awslocal sqs purge-queue --queue-url http://sqs.us-east-1.localhost.localstack.cloud:4566/000000000000/invoice-issued-event.fifo
+	@ docker compose exec localstack awslocal sqs purge-queue --queue-url http://sqs.us-east-1.localhost.localstack.cloud:4566/000000000000/order-scheduled-event.fifo
+	@ docker compose exec localstack awslocal sqs purge-queue --queue-url http://sqs.us-east-1.localhost.localstack.cloud:4566/000000000000/bill-performed-event.fifo
+	@ docker compose exec localstack awslocal sqs purge-queue --queue-url http://sqs.us-east-1.localhost.localstack.cloud:4566/000000000000/order-ordered-event.fifo
+	@ docker compose exec localstack awslocal sqs purge-queue --queue-url http://sqs.us-east-1.localhost.localstack.cloud:4566/000000000000/stock-failed-event.fifo
+	@ docker compose exec localstack awslocal sqs purge-queue --queue-url http://sqs.us-east-1.localhost.localstack.cloud:4566/000000000000/order-failed-delivery.fifo
+	@ docker compose exec localstack awslocal sqs purge-queue --queue-url http://sqs.us-east-1.localhost.localstack.cloud:4566/000000000000/perform-billing-failed-event.fifo
+	@ docker compose exec localstack awslocal sqs purge-queue --queue-url http://sqs.us-east-1.localhost.localstack.cloud:4566/000000000000/queue-perform-billing-command.fifo
+	@ docker compose exec localstack awslocal sqs purge-queue --queue-url http://sqs.us-east-1.localhost.localstack.cloud:4566/000000000000/queue-schedule-order-command.fifo
+
+count-all-messages:
+	docker compose exec localstack awslocal sqs get-queue-attributes --queue-url http://sqs.us-east-1.localhost.localstack.cloud:4566/000000000000/queue-order-stock-command.fifo --attribute-names ApproximateNumberOfMessages ApproximateNumberOfMessagesNotVisible
+	docker compose exec localstack awslocal sqs get-queue-attributes --queue-url http://sqs.us-east-1.localhost.localstack.cloud:4566/000000000000/queue-order-stock-command.fifo --attribute-names ApproximateNumberOfMessages ApproximateNumberOfMessagesNotVisible
+	docker compose exec localstack awslocal sqs get-queue-attributes --queue-url http://sqs.us-east-1.localhost.localstack.cloud:4566/000000000000/queue-cancel-order-stock-command.fifo --attribute-names ApproximateNumberOfMessages ApproximateNumberOfMessagesNotVisible
+	docker compose exec localstack awslocal sqs get-queue-attributes --queue-url http://sqs.us-east-1.localhost.localstack.cloud:4566/000000000000/order-stock-failed-event.fifo --attribute-names ApproximateNumberOfMessages ApproximateNumberOfMessagesNotVisible
+	docker compose exec localstack awslocal sqs get-queue-attributes --queue-url http://sqs.us-east-1.localhost.localstack.cloud:4566/000000000000/queue-order-stock-command.fifo --attribute-names ApproximateNumberOfMessages ApproximateNumberOfMessagesNotVisible
+	docker compose exec localstack awslocal sqs get-queue-attributes --queue-url http://sqs.us-east-1.localhost.localstack.cloud:4566/000000000000/invoice-issued-event.fifo --attribute-names ApproximateNumberOfMessages ApproximateNumberOfMessagesNotVisible
+	docker compose exec localstack awslocal sqs get-queue-attributes --queue-url http://sqs.us-east-1.localhost.localstack.cloud:4566/000000000000/order-scheduled-event.fifo --attribute-names ApproximateNumberOfMessages ApproximateNumberOfMessagesNotVisible
+	docker compose exec localstack awslocal sqs get-queue-attributes --queue-url http://sqs.us-east-1.localhost.localstack.cloud:4566/000000000000/bill-performed-event.fifo --attribute-names ApproximateNumberOfMessages ApproximateNumberOfMessagesNotVisible
+	docker compose exec localstack awslocal sqs get-queue-attributes --queue-url http://sqs.us-east-1.localhost.localstack.cloud:4566/000000000000/order-ordered-event.fifo --attribute-names ApproximateNumberOfMessages ApproximateNumberOfMessagesNotVisible
+	docker compose exec localstack awslocal sqs get-queue-attributes --queue-url http://sqs.us-east-1.localhost.localstack.cloud:4566/000000000000/stock-failed-event.fifo --attribute-names ApproximateNumberOfMessages ApproximateNumberOfMessagesNotVisible
+	docker compose exec localstack awslocal sqs get-queue-attributes --queue-url http://sqs.us-east-1.localhost.localstack.cloud:4566/000000000000/order-failed-delivery.fifo --attribute-names ApproximateNumberOfMessages ApproximateNumberOfMessagesNotVisible
+	docker compose exec localstack awslocal sqs get-queue-attributes --queue-url http://sqs.us-east-1.localhost.localstack.cloud:4566/000000000000/perform-billing-failed-event.fifo --attribute-names ApproximateNumberOfMessages ApproximateNumberOfMessagesNotVisible
+	docker compose exec localstack awslocal sqs get-queue-attributes --queue-url http://sqs.us-east-1.localhost.localstack.cloud:4566/000000000000/queue-perform-billing-command.fifo --attribute-names ApproximateNumberOfMessages ApproximateNumberOfMessagesNotVisible
+	docker compose exec localstack awslocal sqs get-queue-attributes --queue-url http://sqs.us-east-1.localhost.localstack.cloud:4566/000000000000/queue-schedule-order-command.fifo --attribute-names ApproximateNumberOfMessages ApproximateNumberOfMessagesNotVisible
+	

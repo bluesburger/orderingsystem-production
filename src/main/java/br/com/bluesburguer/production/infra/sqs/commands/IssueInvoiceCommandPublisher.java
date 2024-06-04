@@ -10,7 +10,8 @@ import lombok.ToString;
 @Service
 public class IssueInvoiceCommandPublisher extends OrderCommandPublisher<IssueInvoiceCommand> {
 
-	public IssueInvoiceCommandPublisher(@Value("${queue.invoice-command:queue-invoice-command}") String queueName) {
+	public IssueInvoiceCommandPublisher(
+			@Value("${queue.invoice-command:queue-invoice-command.fifo}") String queueName) {
 		super(queueName);
 	}
 }
