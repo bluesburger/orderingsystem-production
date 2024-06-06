@@ -1,5 +1,7 @@
 package br.com.bluesburguer.production.application.sqs;
 
+import java.util.Objects;
+
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cloud.aws.messaging.listener.Acknowledgment;
 import org.springframework.cloud.aws.messaging.listener.SqsMessageDeletionPolicy;
@@ -37,36 +39,42 @@ public class OrderOrchestratorFailureCompensation {
 	
 	@SqsListener(value = "${queue.order.stock-failed-event:order-stock-failed-event.fifo}", deletionPolicy = SqsMessageDeletionPolicy.NEVER)
 	public void handle(OrderStockFailedEvent event, Acknowledgment ack) throws JsonProcessingException {
-		log.info("Event received on queue: {}", event.getEventName());
-
-		var command = new CancelOrderCommand(event.getOrderId());
-		if (cancelOrderPublisher.publish(command).isPresent()) {
-			ack.acknowledge();
+		if (Objects.nonNull(event)) {
+			log.info("Event received on queue: {}", event.getEventName());
+			
+			var command = new CancelOrderCommand(event.getOrderId());
+			if (cancelOrderPublisher.publish(command).isPresent()) {
+				ack.acknowledge();
+			}
 		}
 	}
 
 	@SqsListener(value = "${queue.order.perform-billing-failed-event:perform-billing-failed-event.fifo}", deletionPolicy = SqsMessageDeletionPolicy.NEVER)
 	public void handle(@Payload PerformBillingFailedEvent event, Acknowledgment ack) {
-		log.info("Event received on queue: {}", event.getEventName());
+		if (Objects.nonNull(event)) {
+			log.info("Event received on queue: {}", event.getEventName());
 
-		var command = new CancelOrderStockCommand(event.getOrderId());
-		if (cancelOrderStockPublisher.publish(command).isPresent()) {
-			var compensationEvent = new OrderStockFailedEvent(event.getOrderId());
-			if (orderStockFailedEventPublisher.publish(compensationEvent).isPresent()) {
-				ack.acknowledge();
+			var command = new CancelOrderStockCommand(event.getOrderId());
+			if (cancelOrderStockPublisher.publish(command).isPresent()) {
+				var compensationEvent = new OrderStockFailedEvent(event.getOrderId());
+				if (orderStockFailedEventPublisher.publish(compensationEvent).isPresent()) {
+					ack.acknowledge();
+				}
 			}
 		}
 	}
 
 	@SqsListener(value = "${queue.issue.invoice-failed-event:order-failed-delivery.fifo}", deletionPolicy = SqsMessageDeletionPolicy.NEVER)
 	public void handle(@Payload IssueInvoiceFailedEvent event, Acknowledgment ack) {
-		log.info("Event received on queue: {}", event.getEventName());
+		if (Objects.nonNull(event)) {
+			log.info("Event received on queue: {}", event.getEventName());
 		
-		var command = new CancelBillingCommand(event.getOrderId());
-		if (cancelBillingPublisher.publish(command).isPresent()) {
-			var compensationEvent = new PerformBillingFailedEvent(event.getOrderId());
-			if (performBillingFailedEventPublisher.publish(compensationEvent).isPresent()) {
-				ack.acknowledge();
+			var command = new CancelBillingCommand(event.getOrderId());
+			if (cancelBillingPublisher.publish(command).isPresent()) {
+				var compensationEvent = new PerformBillingFailedEvent(event.getOrderId());
+				if (performBillingFailedEventPublisher.publish(compensationEvent).isPresent()) {
+					ack.acknowledge();
+				}
 			}
 		}
 	}

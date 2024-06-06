@@ -46,12 +46,9 @@ public class OrderOrchestrator {
 	// Pedido
 	@SqsListener(value = "${queue.order.created-event:order-created-event.fifo}", deletionPolicy = SqsMessageDeletionPolicy.NEVER)
 	public void handle(@Payload OrderCreatedEvent event, Acknowledgment ack) {
-		log.info("Event received on queue: {}", event.getEventName());
-
 		if (execute(event, Step.ORDER, Fase.CREATED)) {
 			var command = new OrderStockCommand(event.getOrderId());
 			if (orderStockCommandPublisher.publish(command).isPresent()) {
-				log.info("Published command {}", command);
 				ack.acknowledge();
 			}
 		}
@@ -60,8 +57,6 @@ public class OrderOrchestrator {
 	// Estoque
 	@SqsListener(value = "${queue.order.ordered-event:order-ordered-event.fifo}", deletionPolicy = SqsMessageDeletionPolicy.NEVER)
 	public void handle(@Payload OrderOrderedEvent event, Acknowledgment ack) {
-		log.info("Event received on queue: {}", event.getEventName());
-
 		if (execute(event, Step.DELIVERY, Fase.CREATED)) {
 			var command = new PerformBillingCommand(event.getOrderId());
 			if (performBillingCommandPublisher.publish(command).isPresent()) {
@@ -73,8 +68,6 @@ public class OrderOrchestrator {
 	// Cobrança
 	@SqsListener(value = "${queue.bill.performed-event:bill-performed-event.fifo}", deletionPolicy = SqsMessageDeletionPolicy.NEVER)
 	public void handle(@Payload BillPerformedEvent event, Acknowledgment ack) {
-		log.info("Event received on queue: {}", event.getEventName());
-
 		if (execute(event, Step.CHARGE, Fase.CONFIRMED)) {
 			var command = new IssueInvoiceCommand(event.getOrderId());
 			if (issueInvoiceCommandPublisher.publish(command).isPresent()) {
@@ -86,8 +79,6 @@ public class OrderOrchestrator {
 	// NotaFiscal
 	@SqsListener(value = "${queue.invoice-issued-event:invoice-issued-event.fifo}", deletionPolicy = SqsMessageDeletionPolicy.NEVER)
 	public void handle(@Payload InvoiceIssueEvent event, Acknowledgment ack) {
-		log.info("Event received on queue: {}", event.getEventName());
-
 		if (execute(event, Step.INVOICE, Fase.CONFIRMED)) {
 			var command = new ScheduleOrderCommand(event.getOrderId());
 			if (scheduleOrderCommandPublisher.publish(command).isPresent()) {
@@ -99,8 +90,6 @@ public class OrderOrchestrator {
 	// Entrega
 	@SqsListener(value = "${queue.order.scheduled-event:order-scheduled-event.fifo}", deletionPolicy = SqsMessageDeletionPolicy.NEVER)
 	public void handle(@Payload OrderScheduledEvent event, Acknowledgment ack) {
-		log.info("Event received on queue: {}", event.getEventName());
-
 		if (execute(event, Step.DELIVERY, Fase.CONFIRMED)) {
 			var command = new OrderConfirmedCommand(event.getOrderId());
 			if (orderConfirmedCommandPublisher.publish(command).isPresent()) {
@@ -111,6 +100,8 @@ public class OrderOrchestrator {
 
 	private boolean execute(OrderEvent event, Step step, Fase fase) {
 		if (Objects.nonNull(event)) {
+			log.info("Event received on queue: {}", event.getEventName());
+			
 			try {
 				if (orderPort.update(event.getOrderId(), step, fase)) {
 					eventDatabaseAdapter.save(event);
@@ -119,8 +110,8 @@ public class OrderOrchestrator {
 			} catch (Exception e) {
 				log.error("An error occurred", e);
 			}
+			orderPort.update(event.getOrderId(), step, Fase.FAILED);
 		}
-		orderPort.update(event.getOrderId(), step, Fase.FAILED);
 		return false;
 	}
 }

@@ -2,9 +2,6 @@ package br.com.bluesburguer.production.infra.sqs.commands;
 
 import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
@@ -14,17 +11,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@Service
 @RequiredArgsConstructor
 public abstract class OrderCommandPublisher<T extends OrderCommand> implements IOrderCommandPublisher<T> {
 
 	private final String queueName;
 	
-	@Autowired
-    private AmazonSQS amazonSQS;
-	
-	@Autowired
-	private SqsQueueSupport<T> sqsQueueSupport;
+    private final AmazonSQS amazonSQS;
+
+	private final SqsQueueSupport<T> sqsQueueSupport;
 
     @Override
     public Optional<String> publish(T command) {

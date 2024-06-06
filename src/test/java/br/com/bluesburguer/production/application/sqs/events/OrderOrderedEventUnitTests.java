@@ -19,7 +19,7 @@ class OrderOrderedEventUnitTests {
 		
 		assertThat(order).isNotNull();
 		assertThat(order.toString()).isNotNull()
-			.isEqualTo(String.format("PedidoConfirmadoDto(super=OrderEventDto(orderId=%s))", ORDER_ID));
+			.isEqualTo(String.format("OrderOrderedEvent(super=OrderEvent(orderId=%s))", ORDER_ID));
 	}
 
 	@Test

@@ -22,7 +22,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import com.amazonaws.services.sqs.AmazonSQSAsync;
 import com.amazonaws.services.sqs.model.GetQueueAttributesResult;
 import com.amazonaws.services.sqs.model.QueueDoesNotExistException;
-import com.amazonaws.services.sqs.model.SendMessageRequest;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -33,9 +32,10 @@ import br.com.bluesburguer.production.application.sqs.events.OrderCreatedEvent;
 import br.com.bluesburguer.production.application.sqs.events.OrderEvent;
 import br.com.bluesburguer.production.application.sqs.events.OrderOrderedEvent;
 import br.com.bluesburguer.production.application.sqs.events.OrderScheduledEvent;
-import br.com.bluesburguer.production.application.sqs.events.PerformBillingFailedEvent;
+import br.com.bluesburguer.production.application.sqs.events.OrderStockFailedEvent;
 import br.com.bluesburguer.production.domain.entity.Fase;
 import br.com.bluesburguer.production.domain.entity.Step;
+import br.com.bluesburguer.production.infra.sqs.SqsQueueSupport;
 import br.com.bluesburguer.production.support.SqsBaseIntegrationSupport;
 
 class OrderOrchestratorIntegrationTests extends SqsBaseIntegrationSupport {
@@ -46,10 +46,12 @@ class OrderOrchestratorIntegrationTests extends SqsBaseIntegrationSupport {
 	@Autowired
 	ObjectMapper objectMapper;
 	
+	@Autowired
+	SqsQueueSupport<OrderEvent> sqsQueueSupport;
+	
 	@MockBean
 	OrderPort orderPort;
 	
-	// Pedido
 	@Value("${queue.order.created-event:order-created-event}")
 	private String queueOrderCreatedEvent;
 	
@@ -62,11 +64,11 @@ class OrderOrchestratorIntegrationTests extends SqsBaseIntegrationSupport {
 	@Value("${queue.invoice-issued-event:invoice-issued-event}")
 	private String queueInvoiceIssueEvent;
 	
-	// Entrega
 	@Value("${queue.order.scheduled-event:order-scheduled-event}")
 	private String queueOrderScheduledEvent;
 	
-	/// Eventos compensatórios
+	@Value("${queue.order.stock-failed-event:order-stock-failed-event.fifo}")
+	private String queueOrderStockFailedEvent;
 	
 	@BeforeEach
 	void setUp() {
@@ -76,19 +78,20 @@ class OrderOrchestratorIntegrationTests extends SqsBaseIntegrationSupport {
 	}
 	
 	@ParameterizedTest
-	@MethodSource("generateOrders")
+	@MethodSource("generateOrderEvents")
 	void shouldSendOrderEvent_Consume_AndUpdateStatusSuccessfully(OrderEvent orderEvent) throws JsonProcessingException {
 		sendToQueue(orderEvent);
 	}
 	
 	void sendToQueue(OrderEvent orderEvent) throws JsonProcessingException {
 		// given
-		var queueUrl = SQS.getQueueUrl(defineQueueUrl(orderEvent)).getQueueUrl();
+		var queueName = defineQueueUrl(orderEvent);
+		var queueUrl = SQS.getQueueUrl(queueName).getQueueUrl();
+
+		var request = sqsQueueSupport.createRequest(orderEvent, queueName, "order-events");
 		
 		// when
-		SQS.sendMessage(new SendMessageRequest()
-				.withQueueUrl(queueUrl)
-				.withMessageBody(objectMapper.writeValueAsString(orderEvent)));
+		SQS.sendMessage(request);
 		
 		// then
 		await().atMost(3, SECONDS).untilAsserted(() -> {
@@ -134,19 +137,22 @@ class OrderOrchestratorIntegrationTests extends SqsBaseIntegrationSupport {
 			return queueOrderScheduledEvent;
 		}
 		
+		if (orderEvent instanceof OrderStockFailedEvent) {
+			return queueOrderStockFailedEvent;
+		}
+		
 		throw new QueueDoesNotExistException("Queue not covered by integration tests");
 	}
 	
-	private static Stream<OrderEvent> generateOrders() {
+	private static Stream<OrderEvent> generateOrderEvents() {
 		String orderId = "556f2b18-bda4-4d05-934f-7c0063d78f48";
 		return Stream.of(
 				OrderCreatedEvent.builder(), 
 				OrderOrderedEvent.builder(),
 				BillPerformedEvent.builder(),
-				PerformBillingFailedEvent.builder(),
 				InvoiceIssueEvent.builder(),
-				OrderScheduledEvent.builder()
-				// TODO: incluir eventos compensatórios
+				OrderScheduledEvent.builder(),
+				OrderStockFailedEvent.builder()
 			).map(b -> b.orderId(orderId).build());
 	}
 	

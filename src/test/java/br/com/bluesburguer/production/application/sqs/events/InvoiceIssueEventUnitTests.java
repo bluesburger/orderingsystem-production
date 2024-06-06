@@ -19,7 +19,7 @@ class InvoiceIssueEventUnitTests {
 		
 		assertThat(order).isNotNull();
 		assertThat(order.toString()).isNotNull()
-			.isEqualTo(String.format("NotaFiscalEmitidaDto(super=OrderEventDto(orderId=%s))", ORDER_ID));
+			.isEqualTo(String.format("InvoiceIssueEvent(super=OrderEvent(orderId=%s))", ORDER_ID));
 	}
 	
 	@Test
@@ -28,7 +28,7 @@ class InvoiceIssueEventUnitTests {
 		
 		assertThat(order).isNotNull();
 		assertThat(order.toString()).isNotNull()
-			.isEqualTo(String.format("NotaFiscalEmitidaDto(super=OrderEventDto(orderId=%s))", ORDER_ID));
+			.isEqualTo(String.format("InvoiceIssueEvent(super=OrderEvent(orderId=%s))", ORDER_ID));
 	}
 
 	@Test

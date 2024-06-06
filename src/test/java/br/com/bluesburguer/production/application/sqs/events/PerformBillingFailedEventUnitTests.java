@@ -26,6 +26,6 @@ class PerformBillingFailedEventUnitTests {
 	void shouldViewToStringWithOrderId() {
 		var orderPaid = PerformBillingFailedEvent.builder().orderId(ORDER_ID).build();
 		assertThat(orderPaid).isNotNull()
-			.hasToString(String.format("CobrancaFalhouDto(super=OrderEventDto(orderId=%s))", ORDER_ID));
+			.hasToString(String.format("PerformBillingFailedEvent(super=OrderEvent(orderId=%s))", ORDER_ID));
 	}
 }

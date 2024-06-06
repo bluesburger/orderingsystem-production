@@ -3,13 +3,9 @@ package br.com.bluesburguer.production.application.sqs.events;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.EnumSource;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import br.com.bluesburguer.production.domain.entity.Step;
 
 class OrderStockFailedEventUnitTests {
 	
@@ -25,13 +21,12 @@ class OrderStockFailedEventUnitTests {
 		
 		assertThat(order).isNotNull();
 		assertThat(order.toString()).isNotNull()
-			.isEqualTo(String.format("PedidoCanceladoDto(super=OrderEventDto(orderId=%s), step=KITCHEN)", ORDER_ID));
+			.isEqualTo(String.format("OrderStockFailedEvent(super=OrderEvent(orderId=%s))", ORDER_ID));
 	}
 
-	@ParameterizedTest
-	@EnumSource(Step.class)
-	void shouldConstructFromJson(Step step) throws JsonProcessingException {
-		String json = String.format("{\"orderId\":\"%s\", \"step\": \"%s\"}", ORDER_ID, step);
+	@Test
+	void shouldConstructFromJson() throws JsonProcessingException {
+		String json = String.format("{\"orderId\":\"%s\"}", ORDER_ID);
 		OrderStockFailedEvent order = mapper.readValue(json, OrderStockFailedEvent.class);
 		
 		assertThat(order).isNotNull()

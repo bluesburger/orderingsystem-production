@@ -19,7 +19,7 @@ class IssueInvoiceFailedEventUnitTests {
 		
 		assertThat(order).isNotNull();
 		assertThat(order.toString()).isNotNull()
-			.isEqualTo(String.format("EntregaFalhouDto(super=OrderEventDto(orderId=%s))", ORDER_ID));
+			.isEqualTo(String.format("IssueInvoiceFailedEvent(super=OrderEvent(orderId=%s))", ORDER_ID));
 	}
 
 	@Test

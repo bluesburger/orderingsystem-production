@@ -26,6 +26,6 @@ class BillPerformedEventUnitTests {
 	void shouldViewToStringWithOrderId() {
 		var orderPaid = BillPerformedEvent.builder().orderId(ORDER_ID).build();
 		assertThat(orderPaid).isNotNull()
-			.hasToString(String.format("CobrancaRealizadaDto(super=OrderEventDto(orderId=%s))", ORDER_ID));
+			.hasToString(String.format("BillPerformedEvent(super=OrderEvent(orderId=%s))", ORDER_ID));
 	}
 }
