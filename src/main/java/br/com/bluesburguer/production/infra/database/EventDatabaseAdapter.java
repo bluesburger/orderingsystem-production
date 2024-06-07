@@ -4,8 +4,8 @@ import java.util.List;
 
 import org.springframework.stereotype.Component;
 
-import br.com.bluesburguer.production.application.sqs.events.OrderEvent;
 import br.com.bluesburguer.production.infra.database.entity.EventEntity;
+import br.com.bluesburguer.production.infra.messaging.OrderEvent;
 import jakarta.transaction.Transactional;
 import jakarta.transaction.Transactional.TxType;
 import lombok.RequiredArgsConstructor;

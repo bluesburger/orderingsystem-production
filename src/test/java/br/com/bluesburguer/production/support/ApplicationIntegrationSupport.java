@@ -15,12 +15,12 @@ import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.github.tomakehurst.wiremock.matching.EqualToPattern;
 
 import br.com.bluesburguer.production.OrderingsystemProductionApplication;
+import br.com.bluesburguer.production.application.dto.OrderDto;
+import br.com.bluesburguer.production.application.dto.OrderItemDto;
+import br.com.bluesburguer.production.application.dto.OrderRequest;
+import br.com.bluesburguer.production.application.dto.UserDto;
 import br.com.bluesburguer.production.domain.entity.Fase;
 import br.com.bluesburguer.production.domain.entity.Step;
-import br.com.bluesburguer.production.infra.adapters.order.dto.OrderDto;
-import br.com.bluesburguer.production.infra.adapters.order.dto.OrderItemDto;
-import br.com.bluesburguer.production.infra.adapters.order.dto.OrderRequest;
-import br.com.bluesburguer.production.infra.adapters.user.dto.UserDto;
 import wiremock.org.eclipse.jetty.http.HttpStatus;
 
 @TestPropertySource("classpath:application-test.properties")
