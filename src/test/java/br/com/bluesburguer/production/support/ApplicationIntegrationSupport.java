@@ -47,6 +47,10 @@ public abstract class ApplicationIntegrationSupport {
 
 	private static final ObjectMapper mapper = new ObjectMapper();
 	
+	static {
+		System.setProperty("aws.region", "us-east-1");
+	}
+	
 	public static void mockOrderClientCreateNewOrder(WireMockExtension wme, String uri, OrderRequest orderRequest) throws JsonProcessingException {
 		wme.stubFor(WireMock.post(WireMock.urlPathEqualTo("/api/order"))
 				.withRequestBody(new EqualToPattern(mapper.writeValueAsString(orderRequest)))

@@ -24,7 +24,7 @@ import com.amazonaws.services.sqs.AmazonSQSClientBuilder;
 @TestConfiguration
 public class SqsTestConfig {
 	
-	@Value("${cloud.aws.region.static}")
+	@Value("${cloud.aws.region.static:us-east-1}")
 	private String region;
 
 	@Value("${cloud.aws.endpoint.uri}")
