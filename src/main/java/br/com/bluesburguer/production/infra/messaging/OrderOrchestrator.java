@@ -1,116 +1,78 @@
 package br.com.bluesburguer.production.infra.messaging;
 
-import java.util.Objects;
+import java.util.HashMap;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.cloud.aws.messaging.listener.Acknowledgment;
-import org.springframework.cloud.aws.messaging.listener.SqsMessageDeletionPolicy;
-import org.springframework.cloud.aws.messaging.listener.annotation.SqsListener;
-import org.springframework.messaging.handler.annotation.Payload;
+import org.apache.camel.CamelContext;
+import org.apache.camel.LoggingLevel;
+import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.impl.DefaultCamelContext;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import br.com.bluesburguer.production.domain.entity.Fase;
 import br.com.bluesburguer.production.domain.entity.Step;
-import br.com.bluesburguer.production.domain.repository.IOrderCommandPublisher;
 import br.com.bluesburguer.production.domain.usecase.UpdateOrderUseCase;
-import br.com.bluesburguer.production.infra.database.EventDatabaseAdapter;
-import br.com.bluesburguer.production.infra.messaging.command.IssueInvoiceCommand;
-import br.com.bluesburguer.production.infra.messaging.command.OrderConfirmedCommand;
-import br.com.bluesburguer.production.infra.messaging.command.OrderStockCommand;
-import br.com.bluesburguer.production.infra.messaging.command.PerformBillingCommand;
-import br.com.bluesburguer.production.infra.messaging.command.ScheduleOrderCommand;
-import br.com.bluesburguer.production.infra.messaging.event.BillPerformedEvent;
-import br.com.bluesburguer.production.infra.messaging.event.InvoiceIssueEvent;
-import br.com.bluesburguer.production.infra.messaging.event.OrderCreatedEvent;
-import br.com.bluesburguer.production.infra.messaging.event.OrderOrderedEvent;
-import br.com.bluesburguer.production.infra.messaging.event.OrderScheduledEvent;
+import br.com.bluesburguer.production.infra.messaging.processor.MessageQueue;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import software.amazon.awssdk.services.sqs.SqsClient;
 
 @Slf4j
-//@Service
+@Service
 @RequiredArgsConstructor
-//@ConditionalOnProperty(name = "cloud.aws.sqs.listener.auto-startup", havingValue = "true")
-public class OrderOrchestrator {
+public class OrderOrchestrator extends RouteBuilder {
 
-	private final UpdateOrderUseCase orderPort;
-	private final EventDatabaseAdapter eventDatabaseAdapter;
+	private final UpdateOrderUseCase updateOrderUseCase;
 	
-//	private final IOrderCommandPublisher<OrderStockCommand> orderStockCommandPublisher;
-//	private final IOrderCommandPublisher<PerformBillingCommand> performBillingCommandPublisher;
-//	private final IOrderCommandPublisher<IssueInvoiceCommand> issueInvoiceCommandPublisher;
-//	private final IOrderCommandPublisher<ScheduleOrderCommand> scheduleOrderCommandPublisher;
-//	private final IOrderCommandPublisher<OrderConfirmedCommand> orderConfirmedCommandPublisher;
-
-	// Pedido
-//	@SqsListener(value = "${queue.order.created-event:order-created-event.fifo}", deletionPolicy = SqsMessageDeletionPolicy.NEVER)
-//	public void handle(@Payload OrderCreatedEvent event, Acknowledgment ack) {
-//		if (execute(event, Step.ORDER, Fase.CREATED)) {
-//			var command = new OrderStockCommand(event.getOrderId());
-//			if (orderStockCommandPublisher.publish(command).isPresent()) {
-//				ack.acknowledge();
-//			}
-//		}
-//	}
-
-	// Estoque
-//	@SqsListener(value = "${queue.order.ordered-event:order-ordered-event.fifo}", deletionPolicy = SqsMessageDeletionPolicy.NEVER)
-//	public void handle(@Payload OrderOrderedEvent event, Acknowledgment ack) {
-//		if (execute(event, Step.DELIVERY, Fase.CREATED)) {
-//			var command = new PerformBillingCommand(event.getOrderId());
-//			if (performBillingCommandPublisher.publish(command).isPresent()) {
-//				ack.acknowledge();
-//			}
-//		}
-//	}
-
-	// Cobrança
-//	@SqsListener(value = "${queue.bill.performed-event:bill-performed-event.fifo}", deletionPolicy = SqsMessageDeletionPolicy.NEVER)
-//	public void handle(@Payload BillPerformedEvent event, Acknowledgment ack) {
-//		if (execute(event, Step.CHARGE, Fase.CONFIRMED)) {
-//			var command = new IssueInvoiceCommand(event.getOrderId());
-//			if (issueInvoiceCommandPublisher.publish(command).isPresent()) {
-//				ack.acknowledge();
-//			}
-//		}
-//	}
-
-	// NotaFiscal
-//	@SqsListener(value = "${queue.invoice-issued-event:invoice-issued-event.fifo}", deletionPolicy = SqsMessageDeletionPolicy.NEVER)
-//	public void handle(@Payload InvoiceIssueEvent event, Acknowledgment ack) {
-//		if (execute(event, Step.INVOICE, Fase.CONFIRMED)) {
-//			var command = new ScheduleOrderCommand(event.getOrderId());
-//			if (scheduleOrderCommandPublisher.publish(command).isPresent()) {
-//				ack.acknowledge();
-//			}
-//		}
-//	}
-
-	// Entrega
-//	@SqsListener(value = "${queue.order.scheduled-event:order-scheduled-event.fifo}", deletionPolicy = SqsMessageDeletionPolicy.NEVER)
-//	public void handle(@Payload OrderScheduledEvent event, Acknowledgment ack) {
-//		if (execute(event, Step.DELIVERY, Fase.CONFIRMED)) {
-//			var command = new OrderConfirmedCommand(event.getOrderId());
-//			if (orderConfirmedCommandPublisher.publish(command).isPresent()) {
-//				ack.acknowledge();
-//			}
-//		}
-//	}
-
-	private boolean execute(OrderEvent event, Step step, Fase fase) {
-		if (Objects.nonNull(event)) {
-			log.info("Event received on queue: {}", event.getEventName());
-			
-			try {
-				if (orderPort.update(event.getOrderId(), step, fase)) {
-					eventDatabaseAdapter.save(event);
-					return true;
-				}
-			} catch (Exception e) {
-				log.error("An error occurred", e);
-			}
-			orderPort.update(event.getOrderId(), step, Fase.FAILED);
-		}
-		return false;
+//	private final SqsClient sqsClient;
+	
+	@Value("${cloud.aws.endpoint.uri}")
+	private String sqsUrl;
+	
+	@Value("${cloud.aws.account-id}")
+	private String accountId;
+	
+	private String defineUri(String queueName) {
+		return String.format(new StringBuilder("aws2-sqs://%s?queueUrl=%s/%s/%s?")
+				.append("?amazonSQSClient=#myClient")
+				.append("&autoCreateQueue=true")
+				.append("&useDefaultCredentialsProvider=true")
+				.append("&useProfileCredentialsProvider=true")
+				.append("&useSessionCredentials=false")
+//				.append("&delay=500000")
+				.toString(), queueName, sqsUrl, accountId, queueName);
 	}
+	
+	@Override
+	public void configure() throws Exception {
+//		CamelContext context = new DefaultCamelContext();
+//		context.getRegistry().bind("myClient", sqsClient);
+		
+		from(defineUri("orquestracao_pedidos"))
+	        .log(LoggingLevel.WARN, "Novo Pedido Recebido")
+	        .bean(MessageQueue.class, "fromJsonToMap(${body})")
+	        .convertBodyTo(String.class)
+	        .to(defineUri("orquestracao_pagamentos"));
+	
+	
+		from(defineUri("orquestracao_pedidos_saga_reply"))
+	        .routeId("Rota orquestracao_pedidos_saga_reply")
+	        .log(LoggingLevel.WARN, "${body}")
+	        .choice()
+	            .when(body().contains("atualizacaoPagamento"))
+	               .to(defineUri("orquestracao_entregas"))
+	            .when(body().contains("\"statusEntrega\":\"CONFIRMADA\""))
+	                    .log(LoggingLevel.WARN, "entrega confirmada")
+	                    .bean(OrderOrchestrator.class,"confirmarPedido(${body})")
+	                    .log(LoggingLevel.WARN, "Pedido confirmado");
+		
+		from(defineUri("orquestracao_pagamentos"))
+	        .log(LoggingLevel.WARN, "Novo Pagamento Recebido");
+	}
+	
+	public void confirmarPedido(String json) {
+        HashMap<String, String> map = MessageQueue.fromJsonToMap(json);
+        updateOrderUseCase.update(map.get("orderId"), Step.valueOf(map.get("newStep")), Fase.valueOf(map.get("newFase")));
+
+    }
 }

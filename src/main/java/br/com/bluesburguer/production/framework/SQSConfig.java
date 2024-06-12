@@ -1,5 +1,6 @@
 package br.com.bluesburguer.production.framework;
 
+import java.net.URI;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -25,6 +26,10 @@ import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.sqs.AmazonSQSAsync;
 import com.amazonaws.services.sqs.AmazonSQSAsyncClientBuilder;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.sqs.SqsClient;
 
 /**
  * Configurações dos beans para o SQS
@@ -55,6 +60,17 @@ public class SQSConfig {
 				.withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(sqsUrl, region))
 				.withCredentials(
 						new AWSStaticCredentialsProvider(new BasicAWSCredentials(accessKeyId, secretAccessKey)))
+				.build();
+	}
+	
+	@Bean
+	SqsClient sqsClient() {
+		return SqsClient.builder()
+				.region(Region.US_EAST_1)
+				.credentialsProvider(EnvironmentVariableCredentialsProvider.create())
+                .applyMutation(builder -> {
+                    builder.endpointOverride(URI.create(sqsUrl));
+                })
 				.build();
 	}
 	

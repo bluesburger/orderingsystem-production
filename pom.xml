@@ -71,6 +71,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<jacoco.version>0.8.12</jacoco.version>
 		<aspectj.version>1.9.19</aspectj.version>
+		<camel.version>4.6.0</camel.version>
 	    
 	    <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
 	    <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
@@ -335,6 +336,30 @@
             <version>3.9.5</version>
             <scope>test</scope>
         </dependency>
+        
+        <!-- Saga -->
+		<dependency>
+		    <groupId>org.apache.camel</groupId>
+		    <artifactId>camel-aws2-sqs</artifactId>
+		    <version>${camel.version}</version>
+		</dependency>
+		
+		<dependency>
+		  <groupId>org.apache.camel.springboot</groupId>
+		  <artifactId>camel-aws2-sqs-starter</artifactId>
+		  <version>${camel.version}</version>
+		</dependency>
+		
+		<dependency>
+		    <groupId>org.apache.camel</groupId>
+		    <artifactId>camel-core</artifactId>
+		    <version>${camel.version}</version>
+		</dependency>
+		<dependency>
+		    <groupId>org.apache.camel</groupId>
+		    <artifactId>camel-spring</artifactId>
+		    <version>${camel.version}</version>
+		</dependency>
 
 	</dependencies>
 
