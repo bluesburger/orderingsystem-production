@@ -11,7 +11,8 @@ import br.com.bluesburguer.production.domain.entity.Fase;
 import br.com.bluesburguer.production.domain.entity.Step;
 import br.com.bluesburguer.production.domain.usecase.UpdateOrderUseCase;
 import br.com.bluesburguer.production.infra.messaging.event.BillPerformedEvent;
-import br.com.bluesburguer.production.infra.messaging.event.InvoiceIssueEvent;
+import br.com.bluesburguer.production.infra.messaging.event.IssueInvoiceEvent;
+import br.com.bluesburguer.production.infra.messaging.event.IssueInvoiceFailedEvent;
 import br.com.bluesburguer.production.infra.messaging.event.OrderCreatedEvent;
 import br.com.bluesburguer.production.infra.messaging.event.OrderOrderedEvent;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class OrderOrchestrator extends RouteBuilder {
+public class OrderSaga extends RouteBuilder {
 
 	private final UpdateOrderUseCase updateOrderUseCase;
 	
@@ -34,88 +35,77 @@ public class OrderOrchestrator extends RouteBuilder {
 	
 	@Override
 	public void configure() throws Exception {
-//		CamelContext context = new DefaultCamelContext();
-//		context.getRegistry().bind("myClient", sqsClient);
-		
-		from(defineUri("queue-order-stock-command.fifo"))
-        	.routeId("Rota de estoque")
-			.log(LoggingLevel.WARN, "${body}");
-		
 		from(defineUri("order-created-event.fifo"))
-	        .routeId("Rota pedido criado")
+	        .routeId("Rota de pedido")
 	        .log(LoggingLevel.WARN, "${body}")
 	        .convertBodyTo(String.class)
-	        .bean(OrderOrchestrator.class, "handleOrderCreatedEvent(${body})")
+	        .bean(OrderSaga.class, "handleOrderCreatedEvent(${body})")
 	        .to(defineUri("queue-order-stock-command.fifo"));
 		
-		from(defineUri("queue-perform-billing-command.fifo"))
-    		.routeId("Rota de solicitação de pagamento")
-    		.log(LoggingLevel.WARN, "${body}");
-		
 		from(defineUri("order-ordered-event.fifo"))
-			.routeId("Rota de pedido reservado no estoque")
+			.routeId("Rota de estoque")
 			.log(LoggingLevel.WARN, "${body}")
 			.choice()
 	            .when(body().contains("RESERVED"))
 	            	.convertBodyTo(String.class)
-			        .bean(OrderOrchestrator.class, "handleOrderOrderedEvent(${body})")
+			        .bean(OrderSaga.class, "handleOrderOrderedEvent(${body})")
 	            	.log(LoggingLevel.WARN, "estoque reservado")
 	                .to(defineUri("queue-perform-billing-command.fifo"))
 	            .otherwise()
 	            	.log(LoggingLevel.WARN, "reserva de estoque falhou")
 	            	.convertBodyTo(String.class)
-	            	.bean(OrderOrchestrator.class, "handleOrderOrderedFailedEvent(${body})")
+	            	.bean(OrderSaga.class, "handleOrderOrderedFailedEvent(${body})")
 	            	.log(LoggingLevel.WARN, "pedido atualizado para status de falha");
 		
-		from(defineUri("queue-invoice-command.fifo"))
-			.routeId("Rota de geração de nota fiscal")
-			.log(LoggingLevel.WARN, "${body}");
-		
 		from(defineUri("bill-performed-event.fifo"))
-			.routeId("Rota de pedido pago")
+			.routeId("Rota de pagamento")
 			.log(LoggingLevel.WARN, "${body}")
 			.choice()
+				.when(body().contains("PENDING"))
+					.convertBodyTo(String.class)
+			        .bean(OrderSaga.class, "handleOrderPaymentRequestEvent(${body})")
+	            	.log(LoggingLevel.WARN, "pagamento solicitado")
 	            .when(body().contains("PAID"))
 		            .convertBodyTo(String.class)
-			        .bean(OrderOrchestrator.class, "handleOrderPaidEvent(${body})")
+			        .bean(OrderSaga.class, "handleOrderPaidEvent(${body})")
 	            	.log(LoggingLevel.WARN, "pedido pago")
 	                .to(defineUri("queue-invoice-command.fifo"))
 	            .otherwise()
 	              	.log(LoggingLevel.WARN, "pagamento de pedido falhou")
 	              	.convertBodyTo(String.class)
-	            	.bean(OrderOrchestrator.class, "handleOrderPaidFailedEvent(${body})")
+	            	.bean(OrderSaga.class, "handleOrderPaidFailedEvent(${body})")
 	            	.log(LoggingLevel.WARN, "pedido atualizado para status de falha");
 		
-		from(defineUri("queue-schedule-order-command.fifo"))
-			.routeId("Rota de agendamento de entrega")
-			.log(LoggingLevel.WARN, "${body}");
-		
 		from(defineUri("invoice-issued-event.fifo"))
-			.routeId("Rota de nota fiscal gerada")
+			.routeId("Rota de nota fiscal")
 			.log(LoggingLevel.WARN, "${body}")
 			.choice()
-	            .when(body().contains("INVOICE_ISSUED"))
+				.when(body().contains("PENDING"))
 		            .convertBodyTo(String.class)
-			        .bean(OrderOrchestrator.class, "handleIssueInvoiceEvent(${body})")
+			        .bean(OrderSaga.class, "handleIssueInvoicePendingEvent(${body})")
+		        	.log(LoggingLevel.WARN, "nota fiscal solicitada")
+	            .when(body().contains("ISSUED"))
+		            .convertBodyTo(String.class)
+			        .bean(OrderSaga.class, "handleIssueInvoiceEvent(${body})")
 	            	.log(LoggingLevel.WARN, "nota fiscal gerada")
 	                .to(defineUri("queue-schedule-order-command.fifo"))
 	            .otherwise()
 	            	.log(LoggingLevel.WARN, "geração de nota fiscal falhou")
 	              	.convertBodyTo(String.class)
-	            	.bean(OrderOrchestrator.class, "handleIssueInvoiceFailedEvent(${body})")
+	            	.bean(OrderSaga.class, "handleIssueInvoiceFailedEvent(${body})")
 	            	.log(LoggingLevel.WARN, "pedido atualizado para status de falha");
 		
 		from(defineUri("order-scheduled-event.fifo"))
-			.routeId("Rota de entrega agendada")
+			.routeId("Rota de entrega")
 			.log(LoggingLevel.WARN, "${body}")
 			.choice()
 	            .when(body().contains("SCHEDULED"))
 	            	.log(LoggingLevel.WARN, "entrega agendada")
-	            	.bean(OrderOrchestrator.class, "handleOrderSheculedEvent(${body})")
+	            	.bean(OrderSaga.class, "handleOrderSheculedEvent(${body})")
 	            .otherwise()
 	              	.log(LoggingLevel.WARN, "agendamento de entrega falhou")
 	              	.convertBodyTo(String.class)
-	            	.bean(OrderOrchestrator.class, "handleOrderSheculedFailedEvent(${body})")
+	            	.bean(OrderSaga.class, "handleOrderSheculedFailedEvent(${body})")
 	            	.log(LoggingLevel.WARN, "pedido atualizado para status de falha");
 	}
 	
@@ -139,18 +129,28 @@ public class OrderOrchestrator extends RouteBuilder {
 		updateOrderUseCase.update(event.getOrderId(), Step.CHARGE, Fase.CONFIRMED);
 	}
 	
+	void handleOrderPaymentRequestEvent(String json) {
+		var event = to(json, BillPerformedEvent.class);
+		updateOrderUseCase.update(event.getOrderId(), Step.CHARGE, Fase.REGISTERED);
+	}
+	
 	void handleOrderPaidFailedEvent(String json) {
 		var event = to(json, BillPerformedEvent.class);
 		updateOrderUseCase.update(event.getOrderId(), Step.CHARGE, Fase.FAILED);
 	}
 	
 	void handleIssueInvoiceEvent(String json) {
-		var event = to(json, InvoiceIssueEvent.class);
+		var event = to(json, IssueInvoiceEvent.class);
 		updateOrderUseCase.update(event.getOrderId(), Step.INVOICE, Fase.CONFIRMED);
 	}
 	
+	void handleIssueInvoicePendingEvent(String json) {
+		var event = to(json, IssueInvoiceEvent.class);
+		updateOrderUseCase.update(event.getOrderId(), Step.INVOICE, Fase.REGISTERED);
+	}
+	
 	void handleIssueInvoiceFailedEvent(String json) {
-		var event = to(json, InvoiceIssueEvent.class);
+		var event = to(json, IssueInvoiceFailedEvent.class);
 		updateOrderUseCase.update(event.getOrderId(), Step.INVOICE, Fase.FAILED);
 	}
 	

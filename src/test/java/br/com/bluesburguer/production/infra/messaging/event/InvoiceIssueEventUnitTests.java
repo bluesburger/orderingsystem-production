@@ -15,7 +15,7 @@ class InvoiceIssueEventUnitTests {
 
 	@Test
 	void shouldBuildWithOrderId() {
-		var order = InvoiceIssueEvent.builder().orderId(ORDER_ID).build();
+		var order = IssueInvoiceEvent.builder().orderId(ORDER_ID).build();
 		
 		assertThat(order).isNotNull();
 		assertThat(order.toString()).isNotNull()
@@ -24,7 +24,7 @@ class InvoiceIssueEventUnitTests {
 	
 	@Test
 	void shoulInstanceWithOrderId() {
-		var order = new InvoiceIssueEvent(ORDER_ID);
+		var order = new IssueInvoiceEvent(ORDER_ID);
 		
 		assertThat(order).isNotNull();
 		assertThat(order.toString()).isNotNull()
@@ -34,7 +34,7 @@ class InvoiceIssueEventUnitTests {
 	@Test
 	void shouldConstructFromJson() throws JsonProcessingException {
 		String json = String.format("{\"orderId\":\"%s\"}", ORDER_ID);
-		InvoiceIssueEvent order = mapper.readValue(json, InvoiceIssueEvent.class);
+		IssueInvoiceEvent order = mapper.readValue(json, IssueInvoiceEvent.class);
 		
 		assertThat(order).isNotNull()
 			.hasFieldOrPropertyWithValue("orderId", ORDER_ID);

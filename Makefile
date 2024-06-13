@@ -86,3 +86,12 @@ send-message-to-queue-order-scheduled-event-success:
 
 send-message-to-queue-order-scheduled-event-failed:
 	make send-message-to-queue queue-name=order-scheduled-event.fifo uuid=${uuid} status=FAILED
+
+create-localstack-queues:
+	@ docker compose exec localstack awslocal sqs create-queue --queue-name queue-order-stock-command.fifo --attributes "FifoQueue=true"
+	
+	@ docker compose exec localstack awslocal sqs create-queue --queue-name queue-perform-billing-command.fifo --attributes "FifoQueue=true"
+
+	@ docker compose exec localstack awslocal sqs create-queue --queue-name queue-invoice-command.fifo --attributes "FifoQueue=true"
+
+	@ docker compose exec localstack awslocal sqs create-queue --queue-name queue-schedule-order-command.fifo --attributes "FifoQueue=true"
