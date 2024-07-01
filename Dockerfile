@@ -1,6 +1,10 @@
 # Usando a imagem do Maven para compilar o aplicativo
 FROM maven:3.8.5-openjdk-17 AS builder
 
+# Defina a variável de ambiente para controlar os testes
+ARG SKIP_TESTS=false
+ENV SKIP_TESTS=${SKIP_TESTS}
+
 # Definindo o diretório de trabalho no contêiner
 WORKDIR /app
 
