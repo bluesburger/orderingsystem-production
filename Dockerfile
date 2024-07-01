@@ -12,13 +12,13 @@ COPY src ./src
 RUN mvn clean install -DskipTests=true
 
 # Usando a imagem do Amazon Corretto para executar o aplicativo
-FROM amazoncorretto:17-al2-jdk
+FROM amazoncorretto:17-al2-native-jdk
 
 WORKDIR /app
 
 # Copie o JAR gerado a partir da etapa anterior para o contêiner
 COPY --from=builder /app/target/orderingsystem-production-0.0.1-SNAPSHOT.jar .
-COPY --from=builder /app/target/*.properties .
+#COPY --from=builder /app/target/*.properties .
 
 
 # Expondo a porta que o aplicativo está ouvindo
