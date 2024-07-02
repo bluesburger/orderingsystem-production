@@ -8,7 +8,7 @@ WORKDIR /app
 COPY pom.xml .
 COPY src ./src
 
-RUN mvn clean install -DskipTests=true
+RUN mvn clean install -DskipTests=true -Dmaven.test.skip=true
 
 # Usando a imagem do Amazon Corretto para executar o aplicativo
 FROM amazoncorretto:17-al2-native-jdk
