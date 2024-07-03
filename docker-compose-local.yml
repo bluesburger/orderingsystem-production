@@ -3,7 +3,7 @@ version: "3.8"
 services:
   localstack:
     container_name: "${LOCALSTACK_DOCKER_NAME:-localstack-main}"
-    image: localstack/localstack
+    image: localstack/localstack:3.0
     ports:
       - "127.0.0.1:4566:4566"            # LocalStack Gateway
       - "127.0.0.1:4510-4559:4510-4559"  # external services port range
@@ -13,15 +13,14 @@ services:
       # LocalStack configuration: https://docs.localstack.cloud/references/configuration/
       - DEBUG=${DEBUG:-1}
       - SERVICES=sqs
-      - DEFAULT_REGION=us-east-1
       - AWS_DEFAULT_REGION=us-east-1
-      - DATA_DIR=/tmp/localstack/data
+      - PERSISTENCE=/tmp/localstack/data
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_KEY}
     volumes:
       - "${LOCALSTACK_VOLUME_DIR:-./volume}:/var/lib/localstack"
       - "/var/run/docker.sock:/var/run/docker.sock"
-      - "./scripts/localstack:/etc/localstack/init/ready.d"  # ready hook
+      # - "./scripts/localstack:/etc/localstack/init/ready.d"  # ready hook
   
   consul:
     image: hashicorp/consul:latest
@@ -38,36 +37,6 @@ services:
       interval: 1m
       timeout: 3s
       retries: 60
-   
-  application:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: ordering-system-prod:latest
-    container_name: orderingsystem-production
-    ports:
-      - "30000:9000"
-    networks:
-      - bluesburguer-network
-    depends_on:
-      localstack:
-        condition: service_healthy
-      consul:
-        condition: service_healthy
-    environment:
-      - SPRING_PROFILES_ACTIVE=test
-      - CONSUL_HOST=consul
-      - AWS_ACCESS_KEY=${AWS_ACCESS_KEY}
-      - AWS_SECRET_KEY=${AWS_SECRET_KEY}
-      - AWS_REGION=us-east-1
-    volumes:
-      - db_app:/var/lib/app
-    healthcheck:
-      test: "curl --fail --silent localhost:9000/actuator/health | grep UP || exit 1"
-      interval: 1m
-      timeout: 3s
-      retries: 3
-      start_period: 30s
 
 networks:
   bluesburguer-network:
