@@ -23,7 +23,7 @@ Covarage
 
 -----
 
-<h2>SAGA Orquestrada (Caminho Feliz)</h2>
+<h2>SAGA Orquestrada</h2>
 
 <img src="./assets/saga-orquestrada.png" alt="Saga Orquestrada!" style="width:1024px; display: block; margin: auto;" />
 
