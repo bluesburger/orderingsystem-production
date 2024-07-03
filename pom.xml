@@ -71,14 +71,16 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<jacoco.version>0.8.12</jacoco.version>
 		<aspectj.version>1.9.19</aspectj.version>
+		<camel.version>4.6.0</camel.version>
 	    
 	    <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
 	    <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
 	    <sonar.language>java</sonar.language>
 	    <sonar.token>${env.SONAR_TOKEN}</sonar.token>
 	    <sonar.sources>src/main/java</sonar.sources>
-		<sonar.organization>bluesburger</sonar.organization>
+	    <sonar.organization>bluesburger</sonar.organization>
 		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
+	    <sonar.coverage.exclusions>**/configuration/**.java, **/performance/**.java, **/OrderingsystemProductionApplication.java</sonar.coverage.exclusions>
 	</properties>
 	
 	<dependencies>
@@ -112,6 +114,33 @@
 			<artifactId>commons-lang3</artifactId>
 		</dependency>
 		
+		<!-- Database -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.mysql</groupId>
+			<artifactId>mysql-connector-j</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+		
+		<!-- Flyway -->
+		<dependency>
+			<groupId>org.flywaydb</groupId>
+			<artifactId>flyway-core</artifactId>
+			<version>9.10.2</version>
+		</dependency>
+		<dependency>
+			<groupId>org.flywaydb</groupId>
+			<artifactId>flyway-mysql</artifactId>
+			<version>9.10.2</version>
+		</dependency>
+		
 		<!-- Swagger -->
 		<dependency>
 		    <groupId>org.springdoc</groupId>
@@ -131,6 +160,16 @@
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-starter-aws-messaging</artifactId>
 			<version>2.2.6.RELEASE</version>
+		</dependency>
+		
+		<!-- SQS Publisher -->
+		<dependency>
+		    <groupId>io.awspring.cloud</groupId>
+		    <artifactId>spring-cloud-aws-starter-sqs</artifactId>
+		</dependency>
+		<dependency>
+		    <groupId>io.awspring.cloud</groupId>
+		    <artifactId>spring-cloud-aws-starter</artifactId>
 		</dependency>
 		
 		<dependency>
@@ -197,6 +236,13 @@
 		<dependency>
 			<groupId>org.testcontainers</groupId>
 			<artifactId>junit-jupiter</artifactId>
+		</dependency>
+		
+		<!-- Validator -->		
+		<dependency>
+		    <groupId>br.com.caelum.stella</groupId>
+		    <artifactId>caelum-stella-core</artifactId>
+		    <version>2.1.6</version>
 		</dependency>
 
 		<!-- Open Feign -->
@@ -290,6 +336,30 @@
             <version>3.9.5</version>
             <scope>test</scope>
         </dependency>
+        
+        <!-- Saga -->
+		<dependency>
+		    <groupId>org.apache.camel</groupId>
+		    <artifactId>camel-aws2-sqs</artifactId>
+		    <version>${camel.version}</version>
+		</dependency>
+		
+		<dependency>
+		  <groupId>org.apache.camel.springboot</groupId>
+		  <artifactId>camel-aws2-sqs-starter</artifactId>
+		  <version>${camel.version}</version>
+		</dependency>
+		
+		<dependency>
+		    <groupId>org.apache.camel</groupId>
+		    <artifactId>camel-core</artifactId>
+		    <version>${camel.version}</version>
+		</dependency>
+		<dependency>
+		    <groupId>org.apache.camel</groupId>
+		    <artifactId>camel-spring</artifactId>
+		    <version>${camel.version}</version>
+		</dependency>
 
 	</dependencies>
 
@@ -358,26 +428,6 @@
                 </dependencies>
             </plugin>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-failsafe-plugin</artifactId>
-                <version>3.1.2</version>
-                <configuration>
-                    <includes>
-                        <include>**/*IntegrationTests.java</include>
-                    </includes>
-                    <skipTests>${skipIntegrationTests}</skipTests>
-                    <rerunFailingTestsCount>2</rerunFailingTestsCount>
-                </configuration>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>integration-test</goal>
-                            <goal>verify</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
                 <groupId>io.qameta.allure</groupId>
                 <artifactId>allure-maven</artifactId>
                 <version>2.23.0</version>
@@ -409,6 +459,70 @@
 	</dependencyManagement>
 	
 	<profiles>
+		<profile>
+            <id>package</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <version>3.1.2</version>
+                        <configuration>
+                            <includes combine.self="override">
+                            </includes>
+                            <excludes combine.self="override">
+                                <exclude>**/*UnitTests.java</exclude>
+                                <exclude>**/*IntegrationTests.java</exclude>
+                            </excludes>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+		<profile>
+            <id>unit-test</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <version>3.1.2</version>
+                        <configuration>
+                            <includes combine.self="override">
+                                <exclude>**/*UnitTests.java</exclude>
+                            </includes>
+                            <excludes combine.self="override">
+                                <include>**/*IntegrationTests.java</include>
+                            </excludes>
+                        </configuration>
+                    </plugin>
+					<plugin>
+						<groupId>org.jacoco</groupId>
+						<artifactId>jacoco-maven-plugin</artifactId>
+						<version>0.8.7</version>
+						<executions>
+							<execution>
+							<id>prepare-agent</id>
+							<goals>
+								<goal>prepare-agent</goal>
+							</goals>
+							</execution>
+							<execution>
+							<id>report</id>
+							<goals>
+								<goal>report</goal>
+							</goals>
+							<configuration>
+								<formats>
+								<format>XML</format>
+								</formats>
+							</configuration>
+							</execution>
+						</executions>
+					</plugin>
+                </plugins>
+            </build>
+        </profile>
         <profile>
             <id>integration-test</id>
             <build>

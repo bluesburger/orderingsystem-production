@@ -1,10 +1,13 @@
+
 # Ordering System Production
-> Responsável por performar a produção
 
-[![Quality Gate Status](http://127.0.0.1:9000/api/project_badges/measure?project=Production&metric=alert_status&token=sqb_34fca0f1eae8fc3010ed400fb9159f4fbb70b2ab)](http://127.0.0.1:9000/dashboard?id=Production)
+Responsável por performar a produção
 
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=bluesburger_orderingsystem-production&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=bluesburger_orderingsystem-production)
 
-## Para utilizar
+---
+
+<h2>Para utilizar</h2>
 
 Instalação
 - Instalar o make conforme tutorial
@@ -16,3 +19,17 @@ Desinstalação
 Covarage
 
 ![Coverage](https://i.imgur.com/fIHDSp9.png)
+
+
+-----
+
+<h2>SAGA Orquestrada</h2>
+
+<img src="./assets/saga-orquestrada.png" alt="Saga Orquestrada!" style="width:1024px; display: block; margin: auto;" />
+
+---
+	
+<h2>Referências</h2>
+
+- [github aws-doc-sdk-examples](https://github.com/awsdocs/aws-doc-sdk-examples/tree/main/java)
+- [ibm-cloud-architecture-saga-orchestration](https://ibm-cloud-architecture.github.io/eda-saga-orchestration/#happy-path)
