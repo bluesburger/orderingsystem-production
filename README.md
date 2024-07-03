@@ -16,77 +16,16 @@ Instalação
 Desinstalação
 - Rodar localmente o comando `make down`
 
+Covarage
+
+![Coverage](https://i.imgur.com/fIHDSp9.png)
+
+
 -----
 
 <h2>SAGA Orquestrada (Caminho Feliz)</h2>
 
 <img src="./assets/saga-orquestrada.png" alt="Saga Orquestrada!" style="width:1024px; display: block; margin: auto;" />
-
-**Serviços**:
-- MenuService
-- OrderService
-- ProductionService (SAGA)
-- StockService
-- PaymentService
-- NotaFiscalService
-
-**Eventos**:
-- OrderCreatedEvent
-- OrderOrderedEvent
-- BillPerformedEvent
-- InvoiceIssuedEvent
-- OrderScheduledEvent
-
-**Comandos**:
-- OrderStockCommand
-- PerformBillingCommand
-- IssueInvoiceCommand
-- ScheduleOrderCommand
-
----
-
-<h2>Dependências</h2>:
-
-**OrderService**
-_Publica_:
-	- OrdeCreatedEvent
-
-**StockService**:
-_Consome_:
-	- OrderStockCommand
-	- ScheduleOrderCommand
-_Publica_:
-	- OrderOrderedEvent
-	- OrderScheduledEvent
-	- OrderStockFailedCommand
-
-**PaymentService**:
-_Consome_:
-	- PerformBillingCommand
-_Publica_:
-	- BillPerformedEvent
-	- PerformBillingFailedCommand
-	
-**NotaFiscalService**:
-_Consome_:
-	- IssueInvoiceCommand	
-_Publica_:
-	- InvoiceIssuedEvent
-	- IssueInvoiceFailedCommand
-	
-**ProductionService**:
-_Consome_:
-	- OrderCreatedEvent
-	- OrderOrderedEvent
-	- BillPerformedEvent
-	- InvoiceIssuedEvent
-	- OrderScheduledEvent
-	
-_Publica_:
-	- OrderStockCommand
-	- PerformBillingCommand
-	- IssueInvoiceCommand
-	- ScheduleOrderCommand
 
 ---
 	
