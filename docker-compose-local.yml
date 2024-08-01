@@ -21,22 +21,6 @@ services:
       - "${LOCALSTACK_VOLUME_DIR:-./volume}:/var/lib/localstack"
       - "/var/run/docker.sock:/var/run/docker.sock"
       # - "./scripts/localstack:/etc/localstack/init/ready.d"  # ready hook
-  
-  consul:
-    image: hashicorp/consul:latest
-    hostname: "consul"
-    ports:
-      - "8400:8400"
-      - "8500:8500"
-      - "8600:8600"
-    networks:
-      - bluesburguer-network
-    healthcheck:
-#      test: wget --no-verbose --tries=1 --spider http://localhost:8500/v1/status/leader || exit 1
-      test: ["CMD", "curl", "-X", "GET", "localhost:8500/v1/status/leader"]
-      interval: 1m
-      timeout: 3s
-      retries: 60
 
 networks:
   bluesburguer-network:

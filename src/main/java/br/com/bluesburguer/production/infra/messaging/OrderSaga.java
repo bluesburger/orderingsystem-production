@@ -25,8 +25,6 @@ public class OrderSaga extends RouteBuilder {
 
 	private final UpdateOrderUseCase updateOrderUseCase;
 	
-//	private final SqsClient sqsClient;
-	
 	@Value("${cloud.aws.endpoint.uri}")
 	private String sqsUrl;
 	
