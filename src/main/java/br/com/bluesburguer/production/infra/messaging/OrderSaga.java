@@ -25,7 +25,8 @@ public class OrderSaga extends RouteBuilder {
 
 	private final UpdateOrderUseCase updateOrderUseCase;
 	
-//	private final SqsClient sqsClient;
+//	private final OrderClient orderClient;
+//	private final PaymentClient paymentClient;
 	
 	@Value("${cloud.aws.endpoint.uri}")
 	private String sqsUrl;
@@ -50,7 +51,9 @@ public class OrderSaga extends RouteBuilder {
 	            	.convertBodyTo(String.class)
 			        .bean(OrderSaga.class, "handleOrderOrderedEvent(${body})")
 	            	.log(LoggingLevel.WARN, "estoque reservado")
-	                .to(defineUri("queue-perform-billing-command.fifo"))
+					// usuário passou a requisitar o pagamento no TOTEM após selecionar o modelo de pagamento
+	                // .to(defineUri("queue-perform-billing-command.fifo"))
+	            	// .bean(OrderSaga.class, "handlePerformBillingCommand(${body})")
 	            .otherwise()
 	            	.log(LoggingLevel.WARN, "reserva de estoque falhou")
 	            	.convertBodyTo(String.class)
@@ -118,6 +121,18 @@ public class OrderSaga extends RouteBuilder {
 		var event = to(json, OrderOrderedEvent.class);
 		updateOrderUseCase.update(event.getOrderId(), Step.DELIVERY, Fase.CREATED);
 	}
+/*
+	void handlePerformBillingCommand(String json) {
+		var event = to(json, OrderOrderedEvent.class);
+		var orderDto = orderClient.getById(event.getOrderId());
+		
+		String orderStatus = "PAID";
+		String orderCreatedTime = LocalDateTime.now().toString();
+		String userId = String.valueOf(orderDto.getUser().getId());
+		String paymentMethod = "PIX"; // por enquanto fixo devido a api de pagamentos dar suporte apenas a esse formato
+		paymentClient.makePayment(new PaymentRequest(new PaymentRequest.Data(event.getOrderId(), orderStatus, orderCreatedTime, userId, paymentMethod)));
+	}
+*/
 	
 	void handleOrderOrderedFailedEvent(String json) {
 		var event = to(json, OrderOrderedEvent.class);
