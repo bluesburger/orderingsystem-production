@@ -54,6 +54,9 @@ public class OrderSaga extends RouteBuilder {
 					// usuário passou a requisitar o pagamento no TOTEM após selecionar o modelo de pagamento
 	                // .to(defineUri("queue-perform-billing-command.fifo"))
 	            	// .bean(OrderSaga.class, "handlePerformBillingCommand(${body})")
+			        .bean(OrderSaga.class, "handleOrderPaidEvent(${body})")
+	            	.log(LoggingLevel.WARN, "pedido pago")
+	                .to(defineUri("queue-invoice-command.fifo"))
 	            .otherwise()
 	            	.log(LoggingLevel.WARN, "reserva de estoque falhou")
 	            	.convertBodyTo(String.class)
